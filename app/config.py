@@ -1,0 +1,53 @@
+from pathlib import Path
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
+
+    heygen_api_key: str
+    heygen_base_url: str = 'https://api.heygen.com'
+    heygen_avatar_id: str | None = None
+    heygen_voice_id: str | None = None
+    heygen_template_id: str | None = None
+    heygen_template_payload_path: str = 'sample_data/template_payload.json'
+    default_video_width: int = 1280
+    default_video_height: int = 720
+    default_background_color: str = '#F4F4F4'
+    default_output_dir: str = 'output'
+    poll_interval_seconds: int = 8
+    poll_timeout_seconds: int = 1200
+    strict_validation: bool = True
+    cors_allow_origins: str = 'http://localhost:8080,http://127.0.0.1:8080,http://localhost:4173,http://127.0.0.1:4173'
+
+    @field_validator('heygen_avatar_id', 'heygen_voice_id', 'heygen_template_id', mode='before')
+    @classmethod
+    def normalize_optional_ids(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+
+        placeholder_values = {
+            'optional_avatar_id',
+            'optional_template_id',
+            'optional_voice_id',
+            'your_avatar_id',
+            'your_template_id',
+            'your_voice_id',
+        }
+        return None if cleaned.lower() in placeholder_values else cleaned
+
+    @property
+    def output_dir(self) -> Path:
+        return Path(self.default_output_dir)
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allow_origins.split(',') if origin.strip()]
+
+
+settings = Settings()
