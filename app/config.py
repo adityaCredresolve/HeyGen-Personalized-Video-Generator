@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     poll_interval_seconds: int = 8
     poll_timeout_seconds: int = 1200
     strict_validation: bool = True
+    cors_allow_all: bool = True
     cors_allow_origins: str = 'http://localhost:8080,http://127.0.0.1:8080,http://localhost:4173,http://127.0.0.1:4173'
 
     @field_validator('heygen_avatar_id', 'heygen_voice_id', 'heygen_template_id', mode='before')

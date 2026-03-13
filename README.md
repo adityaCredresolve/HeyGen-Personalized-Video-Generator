@@ -1,140 +1,112 @@
 # HeyGen Personalized Video Generator
 
-Production-oriented starter pack for **non-conversational personalized Hindi videos** using the HeyGen paid API.
+FastAPI backend plus a Vite/React frontend for generating Hindi personalized videos with HeyGen.
 
-It supports two practical modes:
+The backend currently supports:
 
-1. **Direct video generation** using an existing `avatar_id` and optional `voice_id`
-2. **Template-based generation** using an existing HeyGen `template_id`
+1. Direct video generation with an existing `avatar_id`
+2. Template-based video generation with an existing `template_id`
+3. Polling video status and saving metadata / downloaded MP4 output
 
-This repo is designed for your loan-recall / collections communication flow:
+The active frontend lives in [Frontend/README.md](/Users/aditya/Downloads/heygen_video_generator/Frontend/README.md).
 
-- lead table ingestion from CSV/XLSX
-- strict validation for required variables
-- script rendering with placeholders
-- async polling until video completes
-- MP4 download + metadata save
-
-## Folder structure
+## Repo Layout
 
 ```text
 heygen_video_generator/
 ├── app/
-│   ├── assets/
-│   │   └── avatar_source.png
-│   ├── services/
-│   │   ├── heygen_client.py
-│   │   ├── leads_service.py
-│   │   ├── script_renderer.py
-│   │   └── video_service.py
-│   ├── templates/
-│   │   ├── legal_notice_raw_hi.txt
-│   │   └── legal_notice_safe_hi.txt
 │   ├── config.py
 │   ├── main.py
-│   └── models.py
+│   ├── models.py
+│   ├── services/
+│   └── templates/
+├── Frontend/
+├── input/
 ├── output/
 ├── sample_data/
-│   ├── leads.csv
-│   └── template_payload.json
 ├── scripts/
-│   ├── generate_from_csv.py
-│   ├── get_template_details.py
-│   └── inspect_account.py
 ├── tests/
-│   └── test_validation.py
 ├── .env.example
-├── requirements.txt
+├── Dockerfile
 └── README.md
 ```
 
-## What you need in HeyGen first
+## Environment
 
-### Option A — direct mode
-Use this if you already have a **Photo Avatar / Digital Twin / Avatar ID** in HeyGen.
-
-Set in `.env`:
+Copy [.env.example](/Users/aditya/Downloads/heygen_video_generator/.env.example) to `.env` and fill in:
 
 ```env
 HEYGEN_API_KEY=...
 HEYGEN_AVATAR_ID=...
 HEYGEN_VOICE_ID=...
-```
-
-### Option B — template mode
-Use this if you created a template in HeyGen Studio and want to replace variables like:
-
-- `customer_name`
-- `lan`
-- `client_name`
-- `tos`
-- `loan_amount`
-
-Set in `.env`:
-
-```env
-HEYGEN_API_KEY=...
 HEYGEN_TEMPLATE_ID=...
 HEYGEN_TEMPLATE_PAYLOAD_PATH=sample_data/template_payload.json
+DEFAULT_VIDEO_WIDTH=1280
+DEFAULT_VIDEO_HEIGHT=720
+DEFAULT_BACKGROUND_COLOR=#F4F4F4
+DEFAULT_OUTPUT_DIR=output
+POLL_INTERVAL_SECONDS=8
+POLL_TIMEOUT_SECONDS=1200
+CORS_ALLOW_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 ```
 
-Then edit `sample_data/template_payload.json` to match your real template payload shape from HeyGen.
+## Run Locally
 
-## Setup
+Backend:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+cd /Users/aditya/Downloads/heygen_video_generator
+python3.11 -m venv .venv311
+source .venv311/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
-```
-
-Update `.env` with your HeyGen API key and IDs.
-
-## Check your account resources
-
-List avatars:
-
-```bash
-python scripts/inspect_account.py avatars
-```
-
-List voices:
-
-```bash
-python scripts/inspect_account.py voices
-```
-
-List templates:
-
-```bash
-python scripts/inspect_account.py templates
-```
-
-Fetch template details:
-
-```bash
-python scripts/get_template_details.py YOUR_TEMPLATE_ID --version v3
-```
-
-## Run local API
-
-```bash
 uvicorn app.main:app --reload
 ```
 
-## Run the wizard frontend
+Frontend:
 
 ```bash
-cd avatar-studio-wizard-main
+cd /Users/aditya/Downloads/heygen_video_generator/Frontend
 npm install
 npm run dev
 ```
 
-By default the Vite app runs on `http://127.0.0.1:8080` and proxies `/api/*` calls to the FastAPI server on `http://127.0.0.1:8000`.
-If you want the frontend to call FastAPI directly instead, copy `avatar-studio-wizard-main/.env.example` to `avatar-studio-wizard-main/.env` and set `VITE_API_BASE_URL`.
+Open `http://127.0.0.1:8080`.
 
-Useful endpoints:
+If you want the frontend to call a custom backend directly, copy [Frontend/.env.example](/Users/aditya/Downloads/heygen_video_generator/Frontend/.env.example) to `Frontend/.env` and set `VITE_API_BASE_URL`.
+
+## Docker
+
+Backend image:
+
+```bash
+cd /Users/aditya/Downloads/heygen_video_generator
+docker build -t heygen-backend .
+docker run --rm \
+  -p 8000:8000 \
+  --env-file .env \
+  -v "$(pwd)/input:/app/input" \
+  -v "$(pwd)/output:/app/output" \
+  heygen-backend
+```
+
+Frontend image:
+
+```bash
+cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+docker build -t heygen-frontend .
+docker run --rm -p 8080:80 heygen-frontend
+```
+
+The frontend Docker build currently defaults `VITE_API_BASE_URL` to `http://13.127.221.158:8000`.
+To override it at build time:
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t heygen-frontend .
+```
+
+If you build the frontend with `VITE_API_BASE_URL=/api`, the bundled Nginx config can proxy `/api` requests to `BACKEND_ORIGIN`.
+
+## API Endpoints
 
 - `GET /health`
 - `GET /meta/avatars`
@@ -142,13 +114,14 @@ Useful endpoints:
 - `GET /meta/templates`
 - `GET /meta/template/{template_id}`
 - `POST /generate/direct`
+- `GET /videos/{video_id}/status`
 - `POST /generate/template`
 
-## Generate one direct video
+## Example Direct Request
 
 ```bash
 curl -X POST http://127.0.0.1:8000/generate/direct?wait=true \
-  -H 'Content-Type: application/json' \
+  -H "Content-Type: application/json" \
   -d '{
     "customer_name": "Ramesh Kumar",
     "lan": "LAN12345",
@@ -160,52 +133,40 @@ curl -X POST http://127.0.0.1:8000/generate/direct?wait=true \
   }'
 ```
 
-## Batch generate from CSV
-
-Direct mode:
+## Example Template Request
 
 ```bash
-python scripts/generate_from_csv.py sample_data/leads.csv --mode direct
+curl -X POST http://127.0.0.1:8000/generate/template?wait=true \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "tos": 38450,
+    "loan_amount": 120000
+  }'
 ```
 
-Template mode:
+## Account Inspection
 
 ```bash
-python scripts/generate_from_csv.py sample_data/leads.csv --mode template --payload-path sample_data/template_payload.json
+source .venv311/bin/activate
+python scripts/inspect_account.py avatars
+python scripts/inspect_account.py voices
+python scripts/inspect_account.py templates
+python scripts/get_template_details.py YOUR_TEMPLATE_ID --version v3
 ```
-
-## Notes on payloads
-
-### Direct mode payload
-The code builds a `POST /v2/video/generate` request with:
-
-- one scene in `video_inputs`
-- avatar block
-- voice block using rendered Hindi script
-- solid background color
-- width/height from `.env`
-
-If your HeyGen account or avatar type expects slightly different request fields, adjust `_build_direct_payload()` in `app/services/video_service.py`.
-
-### Template mode payload
-Template mode intentionally uses a JSON file so you can adapt quickly to your actual HeyGen template schema. The repo replaces placeholders like `{{customer_name}}` and `{{lan}}` inside that JSON before sending it.
-
-## Compliance note
-The included safer Hindi template avoids falsely claiming the avatar is a licensed legal expert. If your legal/compliance team approves a stronger script, you can switch to `legal_notice_raw_hi.txt` or add your own template.
 
 ## Tests
 
 ```bash
-pytest -q
+cd /Users/aditya/Downloads/heygen_video_generator
+source .venv311/bin/activate
+PYTHONPATH=. pytest -q
 ```
 
-## Suggested production flow
+## Notes
 
-1. Create / choose your HeyGen avatar in the dashboard
-2. Confirm `avatar_id` or `template_id`
-3. Validate incoming lead table
-4. Render script or variable payload
-5. Submit generation job to HeyGen
-6. Poll status until complete
-7. Save MP4 + JSON metadata
-8. Push final video URL into WhatsApp / email / CRM workflow
+- The Hindi transcript templates live in [app/templates/legal_notice_raw_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_raw_hi.txt) and [app/templates/legal_notice_safe_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_safe_hi.txt).
+- Output metadata and downloaded videos are written under `output/`.
+- The frontend uses [Frontend/src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts) for all backend calls.
