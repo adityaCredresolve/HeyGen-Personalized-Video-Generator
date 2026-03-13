@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 186 100% 50%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 222 30% 16%;
+    --secondary-foreground: 210 40% 90%;
+
+    --muted: 222 30% 14%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 45 90% 55%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 16%;
+    --ring: 186 100% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 222 42% 8%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 186 100% 50%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 30% 15%;
+    --sidebar-ring: 186 100% 50%;
+
+    --surface: 222 35% 12%;
+    --surface-hover: 222 30% 16%;
+    --glow-primary: 186 100% 50%;
+    --success: 152 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer components {
+  .glow-cyan {
+    box-shadow: 0 0 20px hsl(186 100% 50% / 0.15), 0 0 40px hsl(186 100% 50% / 0.05);
+  }
+
+  .glow-cyan-sm {
+    box-shadow: 0 0 10px hsl(186 100% 50% / 0.1);
+  }
+
+  .glow-cyan-border {
+    border-color: hsl(186 100% 50% / 0.5);
+    box-shadow: 0 0 15px hsl(186 100% 50% / 0.1), inset 0 0 15px hsl(186 100% 50% / 0.03);
+  }
+
+  .surface-card {
+    @apply bg-card rounded-xl border border-border;
+  }
+
+  .surface-elevated {
+    background: hsl(222 35% 12%);
+    @apply rounded-xl border border-border;
+  }
+}

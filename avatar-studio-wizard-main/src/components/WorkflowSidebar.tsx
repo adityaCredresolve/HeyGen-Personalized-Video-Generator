@@ -1,0 +1,68 @@
+import { Check, LayoutTemplate, Settings } from "lucide-react";
+import { STEPS } from "@/store/wizardStore";
+
+interface WorkflowSidebarProps {
+  currentStep: number;
+  onStepClick: (step: number) => void;
+}
+
+export function WorkflowSidebar({ currentStep, onStepClick }: WorkflowSidebarProps) {
+  return (
+    <aside className="w-56 shrink-0 border-r border-border bg-sidebar flex flex-col h-full">
+      <div className="p-5 flex-1">
+        <p className="text-[11px] font-semibold tracking-widest text-muted-foreground mb-5 uppercase">
+          Workflow
+        </p>
+        <nav className="space-y-1">
+          {STEPS.map((step, i) => {
+            const isActive = i === currentStep;
+            const isCompleted = i < currentStep;
+
+            return (
+              <button
+                key={step.key}
+                onClick={() => onStepClick(i)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-primary/10 text-primary glow-cyan-sm"
+                    : isCompleted
+                    ? "text-foreground hover:bg-secondary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                <span
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : isCompleted
+                      ? "bg-success text-primary-foreground"
+                      : "bg-secondary text-muted-foreground"
+                  }`}
+                >
+                  {isCompleted ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="p-5 border-t border-border">
+        <p className="text-[11px] font-semibold tracking-widest text-muted-foreground mb-3 uppercase">
+          Quick Access
+        </p>
+        <div className="space-y-1">
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+            <LayoutTemplate className="h-4 w-4" />
+            Templates
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+            <Settings className="h-4 w-4" />
+            Settings
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
