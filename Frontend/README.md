@@ -43,7 +43,7 @@ docker run --rm -p 8080:80 heygen-frontend
 
 Current Docker default:
 
-- `VITE_API_BASE_URL=http://13.127.221.158:8000/api`
+- `VITE_API_BASE_URL=http://13.127.221.158:8000`
 
 Override it at build time if needed:
 
