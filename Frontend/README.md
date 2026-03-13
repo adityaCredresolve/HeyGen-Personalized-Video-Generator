@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
+# Frontend
 
-## Project info
+This is the active Vite + React frontend for the HeyGen video generator project.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Run Locally
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open `http://127.0.0.1:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The frontend talks to FastAPI through [src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts).
 
-**Use GitHub Codespaces**
+## API Base URL
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Without any env override, the frontend uses `/api`, and Vite proxies that to the local FastAPI server during development.
 
-## What technologies are used for this project?
+If you want the browser to call FastAPI directly, set:
 
-This project is built with:
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+You can set that in [Frontend/.env.example](/Users/aditya/Downloads/heygen_video_generator/Frontend/.env.example) or override it in `Frontend/.env`.
 
-## How can I deploy this project?
+## Docker
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Build:
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+docker build -t heygen-frontend .
+```
 
-Yes, you can!
+Run:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```bash
+docker run --rm -p 8080:80 heygen-frontend
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Current Docker default:
+
+- `VITE_API_BASE_URL=http://13.127.221.158:8000/api`
+
+Override it at build time if needed:
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t heygen-frontend .
+```
+
+If you instead build with `VITE_API_BASE_URL=/api`, [nginx.conf.template](/Users/aditya/Downloads/heygen_video_generator/Frontend/nginx.conf.template) can proxy API calls through `BACKEND_ORIGIN`.
+
+## Key Files
+
+- [src/pages/MyVideos.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/MyVideos.tsx)
+- [src/pages/Index.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/Index.tsx)
+- [src/store/wizardStore.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/store/wizardStore.ts)
+- [Dockerfile](/Users/aditya/Downloads/heygen_video_generator/Frontend/Dockerfile)
