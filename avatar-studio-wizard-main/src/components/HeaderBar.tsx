@@ -1,5 +1,6 @@
 import { Plus, LayoutTemplate, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 
 interface HeaderBarProps {
@@ -20,10 +21,14 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
 
   return (
     <header className="h-14 flex items-center justify-between px-6 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-      <h1 className="font-display text-xl font-bold tracking-tight">
-        <span className="text-foreground">Avatar</span>
-        <span className="text-primary">Studio</span>
-      </h1>
+      <motion.h1 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, type: "spring" }}
+        className="font-display text-xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent"
+      >
+        Vishvarupa
+      </motion.h1>
 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
@@ -42,7 +47,7 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
         <Button
           size="sm"
           onClick={handlePrimaryAction}
-          className={`bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm font-semibold ${
+          className={`bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold ${
             isCreatePage ? "ring-1 ring-primary/40" : ""
           }`}
         >

@@ -24,7 +24,7 @@ export function WorkflowSidebar({ currentStep, onStepClick }: WorkflowSidebarPro
                 onClick={() => onStepClick(i)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-primary/10 text-primary glow-cyan-sm"
+                    ? "bg-primary/10 text-primary glow-purple-sm"
                     : isCompleted
                     ? "text-foreground hover:bg-secondary"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"

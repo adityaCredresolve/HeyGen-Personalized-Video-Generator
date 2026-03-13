@@ -32,7 +32,7 @@ export default function MyVideos() {
             <Button
               size="lg"
               onClick={() => navigate("/create")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm font-semibold"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
             >
               Avatar Creation
             </Button>
@@ -64,7 +64,7 @@ export default function MyVideos() {
             </div>
             <Button
               onClick={() => navigate("/create")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm font-semibold"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
             >
               Go to Avatar Creation
             </Button>

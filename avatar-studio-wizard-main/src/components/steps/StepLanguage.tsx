@@ -51,7 +51,7 @@ export function StepLanguage({ selected, onSelect }: StepLanguageProps) {
               onClick={() => onSelect(lang.name)}
               className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 text-left ${
                 isSelected
-                  ? "glow-cyan-border border-primary bg-primary/5"
+                  ? "glow-purple-border border-primary bg-primary/5"
                   : "border-border bg-card hover:bg-surface-hover hover:border-muted-foreground/30"
               }`}
             >

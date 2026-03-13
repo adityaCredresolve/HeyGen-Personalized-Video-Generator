@@ -82,7 +82,7 @@ export function StepAvatar({
               onClick={() => onSelect(avatar.id)}
               className={`relative group p-6 rounded-xl border text-center transition-all duration-200 hover:scale-[1.02] ${
                 isSelected
-                  ? "glow-cyan-border border-primary bg-primary/5"
+                  ? "glow-purple-border border-primary bg-primary/5"
                   : "border-border bg-card hover:bg-surface-hover"
               }`}
             >

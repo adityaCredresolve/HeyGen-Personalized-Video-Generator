@@ -111,7 +111,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        <Button size="sm" type="button" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm">
+        <Button size="sm" type="button" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm">
           <Sparkles className="mr-1.5 h-4 w-4" />
           AI Prompting Soon
         </Button>

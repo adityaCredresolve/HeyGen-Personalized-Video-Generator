@@ -117,7 +117,7 @@ export function StepShare({ state, update }: StepShareProps) {
                   onClick={() => update({ exportFormat: f.id })}
                   className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                     state.exportFormat === f.id
-                      ? "border-primary bg-primary/5 glow-cyan-sm"
+                      ? "border-primary bg-primary/5 glow-purple-sm"
                       : "border-border bg-card hover:bg-surface-hover"
                   }`}
                 >

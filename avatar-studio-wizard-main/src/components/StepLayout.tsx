@@ -72,7 +72,7 @@ export function StepLayout({
           <Button
             onClick={lastAction || onNext}
             disabled={primaryActionBusy}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm font-semibold"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
           >
             {primaryActionBusy ? primaryBusyLabel : lastLabel || "Export Video"}
           </Button>
@@ -80,7 +80,7 @@ export function StepLayout({
           <Button
             onClick={onNext}
             disabled={!canProceed || primaryActionBusy}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan-sm font-semibold disabled:opacity-40"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold disabled:opacity-40"
           >
             {primaryActionBusy ? primaryBusyLabel : nextLabel || "Next"}
             <ChevronRight className="ml-1 h-4 w-4" />
