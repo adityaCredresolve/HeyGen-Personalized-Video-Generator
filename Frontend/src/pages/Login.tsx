@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+import { buildApiUrl } from '@/lib/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +24,7 @@ const Login: React.FC = () => {
       formData.append('username', email.trim().toLowerCase());
       formData.append('password', password);
 
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(buildApiUrl('/auth/login'), {
         method: 'POST',
         body: formData,
       });

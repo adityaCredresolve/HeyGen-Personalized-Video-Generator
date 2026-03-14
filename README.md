@@ -89,7 +89,7 @@ npm install
 
 Open `http://127.0.0.1:8080`.
 
-The frontend defaults to `/api`, and Vite proxies that to the backend in development. If you want the browser to call FastAPI directly, set `VITE_API_BASE_URL` in `Frontend/.env`.
+The frontend always calls the backend through `/api`, and Vite proxies that to the backend in development.
 
 ## Docker
 
@@ -123,7 +123,7 @@ docker run --rm \
 
 ### Frontend image
 
-The frontend image now defaults `VITE_API_BASE_URL` to `/api` and proxies backend requests through `BACKEND_ORIGIN`.
+The frontend image proxies backend requests through `BACKEND_ORIGIN`.
 
 Build:
 
@@ -152,6 +152,42 @@ On Linux, add:
 ```bash
 --add-host=host.docker.internal:host-gateway
 ```
+
+## CI/CD
+
+GitHub Actions workflows are included under `.github/workflows/`:
+
+- `ci.yml` runs backend tests, frontend tests/build, and a Remotion dependency check on every push, pull request, and manual run.
+- `publish-images.yml` is the EC2 CD pipeline. It reruns the checks, publishes backend/frontend images to GitHub Container Registry, uploads `docker-compose.ec2.yml` to your EC2 instance, and restarts the app over SSH.
+
+Published image names:
+
+- `ghcr.io/<owner>/<repo>-backend`
+- `ghcr.io/<owner>/<repo>-frontend`
+
+Required GitHub secrets for EC2 deployment:
+
+- `EC2_HOST`
+- `EC2_USERNAME`
+- `EC2_SSH_KEY`
+- `EC2_APP_DIR`
+- `GHCR_USERNAME`
+- `GHCR_TOKEN`
+
+Optional GitHub secrets:
+
+- `EC2_PORT`
+- `EC2_FRONTEND_PORT`
+
+EC2 setup checklist:
+
+1. Install Docker and Docker Compose on the EC2 instance.
+2. Create the deploy directory from `EC2_APP_DIR`, for example `/opt/personalized-video-generator`.
+3. Copy `.env.example` to `$EC2_APP_DIR/.env` on the server and fill in your real values.
+4. Open inbound security-group access for port `80` and, if needed, `22`.
+5. Keep backend port `8000` private; the frontend container proxies `/api` and `/artifacts` to the backend through `docker-compose.ec2.yml`.
+
+The CD workflow uses the built-in `GITHUB_TOKEN` to push packages to GHCR from Actions, and the EC2 host uses `GHCR_USERNAME` plus `GHCR_TOKEN` to pull those private images during deployment.
 
 ## API Endpoints
 
