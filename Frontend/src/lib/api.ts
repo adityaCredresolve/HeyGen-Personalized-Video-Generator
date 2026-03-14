@@ -134,6 +134,16 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const payload = contentType.includes("application/json") ? ((await response.json()) as unknown) : await response.text();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Use window.location to force a reload and redirect via ProtectedRoute
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+      throw new Error("Session expired. Please log in again.");
+    }
+
     if (typeof payload === "string" && payload.trim().startsWith("<")) {
       if (response.status === 504) {
         throw new Error("The render is taking longer than the frontend proxy timeout. Rebuild the frontend container with the updated timeout and try again.");
