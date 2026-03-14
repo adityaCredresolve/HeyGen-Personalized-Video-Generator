@@ -20,3 +20,9 @@ def test_cors_allow_all_defaults_to_enabled() -> None:
     settings = Settings(heygen_api_key='test-key')
 
     assert settings.cors_allow_all is True
+
+
+def test_ffmpeg_binary_defaults_to_ffmpeg() -> None:
+    settings = Settings(heygen_api_key='test-key')
+
+    assert settings.ffmpeg_binary == 'ffmpeg'

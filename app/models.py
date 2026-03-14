@@ -64,3 +64,15 @@ class VideoJobResult(BaseModel):
     title: str | None = None
     raw_response: dict
     saved_to: Path | None = None
+
+
+class StyledVideoResult(BaseModel):
+    video_id: str
+    status: Literal['styled']
+    source_video_path: Path
+    source_video_url: str
+    final_video_path: Path
+    final_video_url: str
+    subtitle_file_path: Path | None = None
+    logo_file_path: Path | None = None
+    subtitle_source: Literal['provider', 'transcript', 'disabled']

@@ -7,6 +7,7 @@ The backend currently supports:
 1. Direct video generation with an existing `avatar_id`
 2. Template-based video generation with an existing `template_id`
 3. Polling video status and saving metadata / downloaded MP4 output
+4. Post-processing completed videos with branded logo overlays and styled burned-in subtitles
 
 The active frontend lives in [Frontend/README.md](/Users/aditya/Downloads/heygen_video_generator/Frontend/README.md).
 
@@ -45,6 +46,7 @@ DEFAULT_VIDEO_WIDTH=1280
 DEFAULT_VIDEO_HEIGHT=720
 DEFAULT_BACKGROUND_COLOR=#F4F4F4
 DEFAULT_OUTPUT_DIR=output
+FFMPEG_BINARY=ffmpeg
 POLL_INTERVAL_SECONDS=8
 POLL_TIMEOUT_SECONDS=1200
 CORS_ALLOW_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
@@ -115,6 +117,7 @@ If you build the frontend with `VITE_API_BASE_URL=/api`, the bundled Nginx confi
 - `GET /meta/template/{template_id}`
 - `POST /generate/direct`
 - `GET /videos/{video_id}/status`
+- `POST /videos/{video_id}/stylize`
 - `POST /generate/template`
 
 ## Example Direct Request
@@ -147,6 +150,21 @@ curl -X POST http://127.0.0.1:8000/generate/template?wait=true \
   }'
 ```
 
+## Example Styling Request
+
+Use this after `/generate/direct?wait=false` has returned a `video_id` and the status endpoint shows it as completed.
+
+```bash
+curl -X POST http://127.0.0.1:8000/videos/VIDEO_ID/stylize \
+  -F include_captions=true \
+  -F subtitle_color=Yellow \
+  -F subtitle_position=Bottom \
+  -F transcript='नमस्ते रमेश कुमार। कृपया तुरंत भुगतान या संपर्क करें।' \
+  -F logo_position='Top Right' \
+  -F logo_opacity=80 \
+  -F logo_file=@/absolute/path/to/logo.png
+```
+
 ## Account Inspection
 
 ```bash
@@ -169,4 +187,6 @@ PYTHONPATH=. pytest -q
 
 - The Hindi transcript templates live in [app/templates/legal_notice_raw_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_raw_hi.txt) and [app/templates/legal_notice_safe_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_safe_hi.txt).
 - Output metadata and downloaded videos are written under `output/`.
+- Styled artifacts are served from `/artifacts/...` and written under `output/styled/`.
+- Subtitle styling and logo overlay use local `ffmpeg`; the provider video is generated first and then post-processed.
 - The frontend uses [Frontend/src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts) for all backend calls.

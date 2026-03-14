@@ -1,10 +1,15 @@
-import { Upload } from "lucide-react";
+import { ChangeEvent, useId, useRef } from "react";
+import { ImagePlus, Upload, X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { WizardState } from "@/store/wizardStore";
+import { Button } from "@/components/ui/button";
 
 const RESET_GENERATION_STATE = {
   generatedVideo: null,
+  styledVideoUrl: "",
+  styledVideoPath: "",
+  subtitleSource: "disabled" as const,
   generationStatus: "idle" as const,
   generationError: "",
 };
@@ -20,29 +25,90 @@ const LOGO_POSITIONS = ["Top Left", "Top Right", "Bottom Left", "Bottom Right"];
 interface StepSubtitleProps {
   state: WizardState;
   update: (partial: Partial<WizardState>) => void;
+  onLogoSelected: (file: File | null) => void;
 }
 
-export function StepSubtitle({ state, update }: StepSubtitleProps) {
+function getPreviewPosition(position: string): string {
+  switch (position) {
+    case "Top":
+      return "items-start pt-6";
+    case "Center":
+      return "items-center";
+    default:
+      return "items-end pb-6";
+  }
+}
+
+function getLogoPreviewPosition(position: string): string {
+  switch (position) {
+    case "Top Left":
+      return "top-4 left-4";
+    case "Bottom Left":
+      return "bottom-4 left-4";
+    case "Bottom Right":
+      return "bottom-4 right-4";
+    default:
+      return "top-4 right-4";
+  }
+}
+
+export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProps) {
+  const fileInputId = useId();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    onLogoSelected(file);
+    update({
+      logoFileName: file?.name ?? "",
+      ...RESET_GENERATION_STATE,
+    });
+    event.target.value = "";
+  };
+
+  const clearLogo = () => {
+    onLogoSelected(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    update({
+      logoFileName: "",
+      ...RESET_GENERATION_STATE,
+    });
+  };
+
   return (
     <div className="grid grid-cols-2 gap-8 max-w-5xl">
       {/* Left – preview + subtitle controls */}
       <div className="space-y-6">
-        <div className="rounded-xl bg-background border border-border aspect-video flex items-end justify-center p-6 relative overflow-hidden">
+        <div className="rounded-xl bg-background border border-border aspect-video flex justify-center p-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/60" />
-          {state.includeCaptions ? (
-            <p
-              className={`relative text-sm font-semibold px-4 py-2 rounded-lg ${
-                state.subtitleColor === "White"
-                  ? "text-foreground bg-background/70"
-                  : state.subtitleColor === "Yellow"
-                  ? "text-accent bg-background/70"
-                  : "text-primary bg-background/70"
-              }`}
+          {state.logoFileName ? (
+            <div
+              className={`absolute ${getLogoPreviewPosition(state.logoPosition)} rounded-lg border border-border/70 bg-background/85 px-3 py-2 text-[11px] font-semibold tracking-wide text-foreground`}
+              style={{ opacity: state.logoOpacity / 100 }}
             >
-              Your payment is overdue.
-            </p>
+              LOGO
+            </div>
+          ) : null}
+          {state.includeCaptions ? (
+            <div className={`relative z-10 flex h-full w-full justify-center ${getPreviewPosition(state.subtitlePosition)}`}>
+              <p
+                className={`text-sm font-semibold px-4 py-2 rounded-lg ${
+                  state.subtitleColor === "White"
+                    ? "text-foreground bg-background/70"
+                    : state.subtitleColor === "Yellow"
+                    ? "text-accent bg-background/70"
+                    : "text-primary bg-background/70"
+                }`}
+              >
+                आपके भुगतान पर ध्यान देना आवश्यक है।
+              </p>
+            </div>
           ) : (
-            <p className="relative text-xs font-medium text-muted-foreground">Captions disabled</p>
+            <div className="relative z-10 flex h-full w-full items-center justify-center">
+              <p className="text-xs font-medium text-muted-foreground">Captions disabled</p>
+            </div>
           )}
         </div>
 
@@ -63,7 +129,7 @@ export function StepSubtitle({ state, update }: StepSubtitleProps) {
             {COLORS.map((c) => (
               <button
                 key={c.name}
-                onClick={() => update({ subtitleColor: c.name })}
+                onClick={() => update({ subtitleColor: c.name, ...RESET_GENERATION_STATE })}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                   state.subtitleColor === c.name
                     ? "border-primary bg-primary/10 text-foreground"
@@ -83,7 +149,7 @@ export function StepSubtitle({ state, update }: StepSubtitleProps) {
             {POSITIONS.map((p) => (
               <button
                 key={p}
-                onClick={() => update({ subtitlePosition: p })}
+                onClick={() => update({ subtitlePosition: p, ...RESET_GENERATION_STATE })}
                 className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                   state.subtitlePosition === p
                     ? "border-primary bg-primary/10 text-foreground"
@@ -101,11 +167,36 @@ export function StepSubtitle({ state, update }: StepSubtitleProps) {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">Company Logo</label>
-          <div className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center bg-secondary/50 hover:bg-surface-hover transition-colors cursor-pointer">
+          <label
+            htmlFor={fileInputId}
+            className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center bg-secondary/50 hover:bg-surface-hover transition-colors cursor-pointer"
+          >
+            <input
+              ref={fileInputRef}
+              id={fileInputId}
+              type="file"
+              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+              className="sr-only"
+              onChange={handleLogoChange}
+            />
             <Upload className="h-8 w-8 text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">Click to upload PNG or SVG</p>
+            <p className="text-sm text-muted-foreground">Upload PNG or JPG</p>
             <p className="text-xs text-muted-foreground mt-1">Max 2MB</p>
-          </div>
+          </label>
+          {state.logoFileName ? (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <ImagePlus className="h-4 w-4 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{state.logoFileName}</p>
+                  <p className="text-xs text-muted-foreground">Will be overlaid onto the final exported video.</p>
+                </div>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={clearLogo} aria-label="Remove logo">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <div>
@@ -114,7 +205,7 @@ export function StepSubtitle({ state, update }: StepSubtitleProps) {
             {LOGO_POSITIONS.map((p) => (
               <button
                 key={p}
-                onClick={() => update({ logoPosition: p })}
+                onClick={() => update({ logoPosition: p, ...RESET_GENERATION_STATE })}
                 className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                   state.logoPosition === p
                     ? "border-primary bg-primary/10 text-foreground"
@@ -133,7 +224,7 @@ export function StepSubtitle({ state, update }: StepSubtitleProps) {
           </label>
           <Slider
             value={[state.logoOpacity]}
-            onValueChange={([v]) => update({ logoOpacity: v })}
+            onValueChange={([v]) => update({ logoOpacity: v, ...RESET_GENERATION_STATE })}
             max={100}
             step={1}
           />

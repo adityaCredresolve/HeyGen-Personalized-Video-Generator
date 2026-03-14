@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { VideoJobResult } from "@/lib/api";
 
 export interface WizardState {
@@ -17,6 +17,7 @@ export interface WizardState {
   subtitleLanguage: string;
   logoPosition: string;
   logoOpacity: number;
+  logoFileName: string;
   aspectRatio: string;
   exportFormat: string;
   customerName: string;
@@ -30,7 +31,10 @@ export interface WizardState {
   includeCaptions: boolean;
   titlePrefix: string;
   generatedVideo: VideoJobResult | null;
-  generationStatus: "idle" | "submitting" | "completed" | "failed";
+  styledVideoUrl: string;
+  styledVideoPath: string;
+  subtitleSource: "provider" | "transcript" | "disabled";
+  generationStatus: "idle" | "submitting" | "styling" | "completed" | "failed";
   generationError: string;
 }
 
@@ -50,6 +54,7 @@ const defaultState: WizardState = {
   subtitleLanguage: "Hindi",
   logoPosition: "Top Right",
   logoOpacity: 80,
+  logoFileName: "",
   aspectRatio: "16:9",
   exportFormat: "MP4",
   customerName: "",
@@ -63,6 +68,9 @@ const defaultState: WizardState = {
   includeCaptions: true,
   titlePrefix: "Loan Recall",
   generatedVideo: null,
+  styledVideoUrl: "",
+  styledVideoPath: "",
+  subtitleSource: "disabled",
   generationStatus: "idle",
   generationError: "",
 };
@@ -77,7 +85,28 @@ export const STEPS = [
 ] as const;
 
 export function useWizardStore() {
-  const [state, setState] = useState<WizardState>(defaultState);
+  const [state, setState] = useState<WizardState>(() => {
+    const saved = localStorage.getItem("avatar-wizard-storage");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // File objects are not persisted across refreshes, so clear the stale file name.
+        parsed.logoFileName = "";
+        // Reset generation state if page was refreshed during an in-flight job.
+        if (parsed.generationStatus === "submitting" || parsed.generationStatus === "styling") {
+          parsed.generationStatus = "idle";
+        }
+        return { ...defaultState, ...parsed };
+      } catch (e) {
+        console.error("Failed to parse wizard state", e);
+      }
+    }
+    return defaultState;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("avatar-wizard-storage", JSON.stringify(state));
+  }, [state]);
 
   const update = useCallback((partial: Partial<WizardState>) => {
     setState((prev) => ({ ...prev, ...partial }));

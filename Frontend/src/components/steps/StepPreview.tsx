@@ -1,8 +1,12 @@
 import { Play } from "lucide-react";
 import { WizardState } from "@/store/wizardStore";
+import { ProcessingScreen } from "@/components/ProcessingScreen";
 
 const RESET_GENERATION_STATE = {
   generatedVideo: null,
+  styledVideoUrl: "",
+  styledVideoPath: "",
+  subtitleSource: "disabled" as const,
   generationStatus: "idle" as const,
   generationError: "",
 };
@@ -21,6 +25,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
   const wordCount = state.transcript.trim() ? state.transcript.trim().split(/\s+/).length : 0;
   const duration = `~${Math.max(1, Math.round(wordCount / 130))} min`;
   const generatedVideo = state.generatedVideo;
+  const previewUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
 
   return (
     <div className="flex gap-8 max-w-5xl">
@@ -51,11 +56,17 @@ export function StepPreview({ state, update }: StepPreviewProps) {
               : "aspect-square max-h-[420px]"
           }`}
         >
-          {generatedVideo?.video_url ? (
+          {state.generationStatus === "submitting" || state.generationStatus === "styling" ? (
+            <ProcessingScreen 
+              status={state.generationStatus} 
+              estimatedTime={Math.max(2, Math.round(wordCount / 130) * 2).toString()} 
+              isLongVideo={wordCount > 300} 
+            />
+          ) : previewUrl ? (
             <video
               controls
-              src={generatedVideo.video_url}
-              poster={generatedVideo.thumbnail_url ?? undefined}
+              src={previewUrl}
+              poster={generatedVideo?.thumbnail_url ?? undefined}
               className="w-full h-full object-cover"
             />
           ) : generatedVideo?.thumbnail_url ? (
@@ -88,9 +99,14 @@ export function StepPreview({ state, update }: StepPreviewProps) {
           <SummaryRow label="Language" value={state.language} />
           <SummaryRow label="Avatar" value={avatarName} />
           <SummaryRow label="Duration" value={duration} />
-          <SummaryRow label="Subtitles" value={`${state.subtitleColor} · ${state.subtitlePosition}`} />
+          <SummaryRow
+            label="Subtitles"
+            value={state.includeCaptions ? `${state.subtitleColor} · ${state.subtitlePosition}` : "Disabled"}
+          />
+          <SummaryRow label="Logo" value={state.logoFileName || "None"} />
           <SummaryRow label="Aspect Ratio" value={state.aspectRatio} />
           <SummaryRow label="Status" value={state.generationStatus} />
+          {state.styledVideoUrl ? <SummaryRow label="Styled Output" value={state.subtitleSource} /> : null}
           {generatedVideo?.video_id ? <SummaryRow label="Video ID" value={generatedVideo.video_id} /> : null}
         </div>
       </div>
@@ -100,9 +116,9 @@ export function StepPreview({ state, update }: StepPreviewProps) {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground font-medium">{value}</span>
+    <div className="flex justify-between items-start gap-3 text-sm">
+      <span className="text-muted-foreground whitespace-nowrap shrink-0">{label}</span>
+      <span className="text-foreground font-medium text-right break-all">{value}</span>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Sparkles, ClipboardPaste, FileText, Trash2 } from "lucide-react";
+import { Sparkles, ClipboardPaste, FileText, Trash2, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,12 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
   const transcript = state.transcript;
   const wordCount = transcript.trim() ? transcript.trim().split(/\s+/).length : 0;
   const duration = Math.max(1, Math.round(wordCount / 130));
+  const isLongTranscript = wordCount > 300;
+  
+  const getErrorClass = (val: string) => 
+    !val.trim() 
+      ? "ring-1 ring-destructive border-transparent focus-visible:ring-destructive bg-destructive/5" 
+      : "bg-secondary border-border";
 
   return (
     <div className="max-w-4xl">
@@ -35,7 +41,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
                 value={state.customerName}
                 onChange={(event) => update({ customerName: event.target.value, ...RESET_GENERATION_STATE })}
                 placeholder="Ramesh Kumar"
-                className="bg-secondary border-border"
+                className={getErrorClass(state.customerName)}
               />
             </Field>
             <Field label="Loan Account Number" required>
@@ -43,7 +49,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
                 value={state.lan}
                 onChange={(event) => update({ lan: event.target.value, ...RESET_GENERATION_STATE })}
                 placeholder="LAN12345"
-                className="bg-secondary border-border"
+                className={getErrorClass(state.lan)}
               />
             </Field>
             <Field label="Client Name" required>
@@ -51,7 +57,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
                 value={state.clientName}
                 onChange={(event) => update({ clientName: event.target.value, ...RESET_GENERATION_STATE })}
                 placeholder="ABC Finance"
-                className="bg-secondary border-border"
+                className={getErrorClass(state.clientName)}
               />
             </Field>
             <Field label="Total Outstanding" required>
@@ -59,7 +65,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
                 value={state.tos}
                 onChange={(event) => update({ tos: event.target.value, ...RESET_GENERATION_STATE })}
                 placeholder="38450"
-                className="bg-secondary border-border"
+                className={getErrorClass(state.tos)}
               />
             </Field>
           </div>
@@ -139,7 +145,7 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
         value={transcript}
         onChange={(event) => update({ transcript: event.target.value, ...RESET_GENERATION_STATE })}
         placeholder={`Type or paste your script here...\n\nTip: Use [pause] for a 1-second pause, [emphasis] before important words.`}
-        className="bg-secondary border-border min-h-[280px] resize-none rounded-xl text-sm leading-relaxed"
+        className={`${getErrorClass(transcript)} min-h-[280px] resize-none rounded-xl text-sm leading-relaxed`}
       />
 
       <p className="mt-2 text-xs text-muted-foreground">
@@ -147,9 +153,12 @@ export function StepTranscript({ state, update }: StepTranscriptProps) {
         <code>{"{{tos}}"}</code>, and <code>{"{{contact_details}}"}</code> are rendered by the backend before submission.
       </p>
 
-      <div className="flex justify-end gap-4 mt-3 text-xs text-muted-foreground">
-        <span>{wordCount} words</span>
-        <span>~{duration} min video</span>
+      <div className="flex justify-end gap-4 mt-3 text-xs">
+        <span className={isLongTranscript ? "text-amber-500 font-medium flex items-center" : "text-muted-foreground"}>
+          {isLongTranscript && <AlertTriangle className="w-3.5 h-3.5 mr-1" />}
+          {wordCount} words {isLongTranscript && "(Generation may take longer)"}
+        </span>
+        <span className="text-muted-foreground">~{duration} min video</span>
       </div>
     </div>
   );

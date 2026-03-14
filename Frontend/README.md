@@ -14,6 +14,11 @@ Open `http://127.0.0.1:8080`.
 
 The frontend talks to FastAPI through [src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts).
 
+The subtitle/logo step now does two real things:
+
+- uploads a PNG/JPG logo to the backend after the base video is finished
+- requests a branded post-processing pass that burns styled subtitles into the final MP4
+
 ## API Base URL
 
 Without any env override, the frontend uses `/api`, and Vite proxies that to the local FastAPI server during development.
@@ -57,5 +62,6 @@ If you instead build with `VITE_API_BASE_URL=/api`, [nginx.conf.template](/Users
 
 - [src/pages/MyVideos.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/MyVideos.tsx)
 - [src/pages/Index.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/Index.tsx)
+- [src/components/steps/StepSubtitle.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/components/steps/StepSubtitle.tsx)
 - [src/store/wizardStore.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/store/wizardStore.ts)
 - [Dockerfile](/Users/aditya/Downloads/heygen_video_generator/Frontend/Dockerfile)

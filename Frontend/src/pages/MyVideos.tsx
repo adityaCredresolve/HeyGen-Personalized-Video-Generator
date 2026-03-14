@@ -1,4 +1,5 @@
 import { Film, FolderOpen, PlayCircle, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { HeaderBar } from "@/components/HeaderBar";
 import { Button } from "@/components/ui/button";
@@ -45,21 +46,35 @@ export default function MyVideos() {
             ))}
           </section>
 
-          <section className="surface-card p-10 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-secondary mx-auto flex items-center justify-center">
-              <FolderOpen className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="font-display text-2xl text-foreground">No videos yet</h2>
-              <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                Your generated videos will show up here. Create your first avatar video to start building the library.
+          <section className="surface-card p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, type: "spring", delay: 0.1 }}
+              className="relative mb-6"
+            >
+              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-24 h-24 rounded-[2rem] bg-gradient-to-br from-primary/10 to-indigo-500/10 border border-primary/20 flex items-center justify-center shadow-inner"
+              >
+                <Film className="h-10 w-10 text-primary opacity-80" />
+              </motion.div>
+            </motion.div>
+            <div className="space-y-3 mb-8">
+              <h2 className="font-display text-2xl font-semibold text-foreground">Your canvas is empty</h2>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                You haven't generated any AI avatar videos yet. Head over to the studio to cast your first digital twin and bring your script to life.
               </p>
             </div>
             <Button
+              size="lg"
               onClick={() => navigate("/create")}
               className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
             >
-              Go to Create Video
+              <Sparkles className="mr-2 h-4 w-4" />
+              Create First Video
             </Button>
           </section>
         </div>

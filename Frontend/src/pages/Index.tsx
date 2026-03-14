@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useWizardStore, STEPS } from "@/store/wizardStore";
 import { HeaderBar } from "@/components/HeaderBar";
@@ -11,7 +11,7 @@ import { StepSubtitle } from "@/components/steps/StepSubtitle";
 import { StepPreview } from "@/components/steps/StepPreview";
 import { StepShare } from "@/components/steps/StepShare";
 import { toast } from "sonner";
-import { DirectVideoPayload, fetchAvatars, fetchVideoStatus, generateDirectVideo } from "@/lib/api";
+import { DirectVideoPayload, fetchAvatars, fetchVideoStatus, generateDirectVideo, stylizeVideo } from "@/lib/api";
 
 const STEP_META = [
   { title: "Select Language", subtitle: "Choose the language for your avatar's voice and generated content.", next: "Next: Avatar →" },
@@ -30,12 +30,17 @@ const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }>
 
 const RESET_GENERATION_STATE = {
   generatedVideo: null,
+  styledVideoUrl: "",
+  styledVideoPath: "",
+  subtitleSource: "disabled" as const,
   generationStatus: "idle" as const,
   generationError: "",
 };
 
 const Index = () => {
   const { state, update, nextStep, prevStep, goToStep, reset, canProceed } = useWizardStore();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const stylingRequestedRef = useRef(false);
   const step = state.currentStep;
   const meta = STEP_META[step];
   const avatarsQuery = useQuery({
@@ -51,9 +56,13 @@ const Index = () => {
   const generateVideoMutation = useMutation({
     mutationFn: (payload: DirectVideoPayload) => generateDirectVideo(payload, false),
     onMutate: () => {
+      stylingRequestedRef.current = false;
       update({
         generationStatus: "submitting",
         generationError: "",
+        styledVideoUrl: "",
+        styledVideoPath: "",
+        subtitleSource: "disabled",
       });
     },
     onSuccess: (result) => {
@@ -75,6 +84,43 @@ const Index = () => {
       toast.error(error instanceof Error ? error.message : "Unexpected error while generating the video.");
     },
   });
+  const stylizeVideoMutation = useMutation({
+    mutationFn: (videoId: string) =>
+      stylizeVideo(videoId, {
+        includeCaptions: state.includeCaptions,
+        subtitleColor: state.subtitleColor,
+        subtitlePosition: state.subtitlePosition,
+        transcript: state.transcript,
+        logoPosition: state.logoPosition,
+        logoOpacity: state.logoOpacity,
+        logoFile,
+      }),
+    onMutate: () => {
+      update({
+        generationStatus: "styling",
+        generationError: "",
+      });
+    },
+    onSuccess: (result) => {
+      stylingRequestedRef.current = true;
+      update({
+        styledVideoUrl: result.final_video_url,
+        styledVideoPath: result.final_video_path,
+        subtitleSource: result.subtitle_source,
+        generationStatus: "completed",
+        generationError: "",
+      });
+      toast.success("Video generated and styled successfully.");
+    },
+    onError: (error) => {
+      stylingRequestedRef.current = false;
+      update({
+        generationStatus: "failed",
+        generationError: error instanceof Error ? error.message : "Unexpected error while styling the video.",
+      });
+      toast.error(error instanceof Error ? error.message : "Unexpected error while styling the video.");
+    },
+  });
 
   useEffect(() => {
     if (!statusQuery.data || state.generationStatus !== "submitting") {
@@ -87,19 +133,24 @@ const Index = () => {
 
     const nextStatus = statusQuery.data.status.toLowerCase();
     if (["completed", "done", "success"].includes(nextStatus)) {
-      update({
-        generatedVideo: statusQuery.data,
-        generationStatus: "completed",
-        generationError: "",
-      });
-      toast.success("Video generated successfully.");
+      update({ generatedVideo: statusQuery.data, generationError: "" });
+      if ((state.includeCaptions || logoFile) && !stylingRequestedRef.current) {
+        stylingRequestedRef.current = true;
+        stylizeVideoMutation.mutate(statusQuery.data.video_id);
+      } else {
+        update({
+          generationStatus: "completed",
+          generationError: "",
+        });
+        toast.success("Video generated successfully.");
+      }
       return;
     }
 
     update({
       generatedVideo: statusQuery.data,
     });
-  }, [state.generatedVideo?.video_id, state.generationStatus, statusQuery.data, update]);
+  }, [logoFile, state.generatedVideo?.video_id, state.generationStatus, state.includeCaptions, statusQuery.data, stylizeVideoMutation, update]);
 
   useEffect(() => {
     if (!statusQuery.error || state.generationStatus !== "submitting") {
@@ -114,14 +165,28 @@ const Index = () => {
   }, [state.generationStatus, statusQuery.error, update]);
 
   const handleCreateVideo = () => {
+    stylingRequestedRef.current = false;
     generateVideoMutation.reset();
+    stylizeVideoMutation.reset();
+    setLogoFile(null);
     reset();
     toast.success("New video draft started!");
   };
 
+  const handleCancel = () => {
+    stylingRequestedRef.current = false;
+    generateVideoMutation.reset();
+    stylizeVideoMutation.reset();
+    update({
+      generationStatus: "idle",
+      generationError: "",
+    });
+    toast.info("Generation interrupted.");
+  };
+
   const handleExport = () => {
-    if (state.generationStatus === "submitting") {
-      toast.info("This video is still generating. Please wait for the current job to finish.");
+    if (state.generationStatus === "submitting" || state.generationStatus === "styling") {
+      toast.info("This video is still processing. Please wait for the current job to finish.");
       return;
     }
 
@@ -182,7 +247,7 @@ const Index = () => {
       case 2:
         return <StepTranscript state={state} update={update} />;
       case 3:
-        return <StepSubtitle state={state} update={update} />;
+        return <StepSubtitle state={state} update={update} onLogoSelected={setLogoFile} />;
       case 4:
         return <StepPreview state={state} update={update} />;
       case 5:
@@ -208,8 +273,9 @@ const Index = () => {
           isLast={step === STEPS.length - 1}
           lastAction={handleExport}
           lastLabel={state.generatedVideo ? "Regenerate Video" : "Generate Video"}
-          primaryActionBusy={generateVideoMutation.isPending}
-          primaryBusyLabel="Video creation under progress..."
+          primaryActionBusy={generateVideoMutation.isPending || stylizeVideoMutation.isPending || state.generationStatus === "submitting" || state.generationStatus === "styling"}
+          primaryBusyLabel={stylizeVideoMutation.isPending || state.generationStatus === "styling" ? "Applying branding..." : "Video creation under progress..."}
+          onCancel={handleCancel}
         >
           {renderStep()}
         </StepLayout>

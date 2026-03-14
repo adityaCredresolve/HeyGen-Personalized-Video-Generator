@@ -45,6 +45,28 @@ export interface VideoJobResult {
   saved_to: string | null;
 }
 
+export interface StyledVideoResult {
+  video_id: string;
+  status: "styled";
+  source_video_path: string;
+  source_video_url: string;
+  final_video_path: string;
+  final_video_url: string;
+  subtitle_file_path: string | null;
+  logo_file_path: string | null;
+  subtitle_source: "provider" | "transcript" | "disabled";
+}
+
+export interface StylizeVideoPayload {
+  includeCaptions: boolean;
+  subtitleColor: string;
+  subtitlePosition: string;
+  transcript?: string;
+  logoPosition: string;
+  logoOpacity: number;
+  logoFile?: File | null;
+}
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
 function buildApiUrl(path: string): string {
@@ -90,7 +112,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
 
-  if (init?.body && !headers.has("Content-Type")) {
+  if (init?.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -267,4 +289,25 @@ export async function generateDirectVideo(payload: DirectVideoPayload, wait = tr
 
 export async function fetchVideoStatus(videoId: string, requestMode: "direct" | "template" = "direct"): Promise<VideoJobResult> {
   return requestJson<VideoJobResult>(`/videos/${videoId}/status?request_mode=${requestMode}`);
+}
+
+export async function stylizeVideo(videoId: string, payload: StylizeVideoPayload): Promise<StyledVideoResult> {
+  const formData = new FormData();
+  formData.set("include_captions", payload.includeCaptions ? "true" : "false");
+  formData.set("subtitle_color", payload.subtitleColor);
+  formData.set("subtitle_position", payload.subtitlePosition);
+  formData.set("logo_position", payload.logoPosition);
+  formData.set("logo_opacity", String(payload.logoOpacity));
+
+  if (payload.transcript?.trim()) {
+    formData.set("transcript", payload.transcript.trim());
+  }
+  if (payload.logoFile) {
+    formData.set("logo_file", payload.logoFile);
+  }
+
+  return requestJson<StyledVideoResult>(`/videos/${videoId}/stylize`, {
+    method: "POST",
+    body: formData,
+  });
 }

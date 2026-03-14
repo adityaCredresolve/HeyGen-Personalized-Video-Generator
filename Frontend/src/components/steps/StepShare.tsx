@@ -23,7 +23,7 @@ interface StepShareProps {
 
 export function StepShare({ state, update }: StepShareProps) {
   const generatedVideo = state.generatedVideo;
-  const videoUrl = generatedVideo?.video_url ?? "";
+  const videoUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
   const avatarName = state.avatarId
     ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
     : "None";
@@ -32,6 +32,8 @@ export function StepShare({ state, update }: StepShareProps) {
       ? generatedVideo?.status ?? "completed"
       : state.generationStatus === "failed"
       ? "failed"
+      : state.generationStatus === "styling"
+      ? "branding in progress"
       : state.generationStatus === "submitting"
       ? "processing"
       : "not started";
@@ -85,6 +87,14 @@ export function StepShare({ state, update }: StepShareProps) {
           <div>
             <p className="text-sm font-semibold text-foreground">Generating video</p>
             <p className="text-xs text-muted-foreground">The job is submitted. The frontend is polling status in the background.</p>
+          </div>
+        </div>
+      ) : state.generationStatus === "styling" ? (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/30">
+          <LoaderCircle className="h-6 w-6 text-primary shrink-0 animate-spin" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">Applying subtitles and logo</p>
+            <p className="text-xs text-muted-foreground">The base video is ready. Branding is being rendered into the final MP4 now.</p>
           </div>
         </div>
       ) : state.generationStatus === "failed" ? (
@@ -168,6 +178,7 @@ export function StepShare({ state, update }: StepShareProps) {
           <Meta label="Avatar" value={avatarName} />
           <Meta label="Status" value={statusText} />
           <Meta label="Video ID" value={generatedVideo?.video_id ?? "Pending"} />
+          <Meta label="Logo" value={state.logoFileName || "None"} />
           <Meta label="Output URL" value={videoUrl || "Pending"} />
         </div>
       </div>

@@ -18,6 +18,7 @@ interface StepLayoutProps {
   lastLabel?: string;
   primaryActionBusy?: boolean;
   primaryBusyLabel?: string;
+  onCancel?: () => void;
 }
 
 export function StepLayout({
@@ -34,6 +35,7 @@ export function StepLayout({
   lastLabel,
   primaryActionBusy = false,
   primaryBusyLabel = "Working...",
+  onCancel,
 }: StepLayoutProps) {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
@@ -81,13 +83,20 @@ export function StepLayout({
           </Button>
 
           {isLast ? (
-            <Button
-              onClick={lastAction || onNext}
-              disabled={primaryActionBusy}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold flex-1"
-            >
-              {primaryActionBusy ? primaryBusyLabel : lastLabel || "Export Video"}
-            </Button>
+            <>
+              <Button
+                onClick={lastAction || onNext}
+                disabled={primaryActionBusy}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold flex-1"
+              >
+                {primaryActionBusy ? primaryBusyLabel : lastLabel || "Export Video"}
+              </Button>
+              {primaryActionBusy && onCancel && (
+                <Button variant="destructive" onClick={onCancel} className="flex-1 max-w-[140px]">
+                  Stop
+                </Button>
+              )}
+            </>
           ) : (
             <Button
               onClick={onNext}

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     default_video_height: int = 720
     default_background_color: str = '#F4F4F4'
     default_output_dir: str = 'output'
+    ffmpeg_binary: str = 'ffmpeg'
     poll_interval_seconds: int = 8
     poll_timeout_seconds: int = 1200
     strict_validation: bool = True
