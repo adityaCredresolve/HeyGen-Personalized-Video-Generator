@@ -12,6 +12,7 @@ export interface WizardState {
   avatarId: string;
   avatarFilter: string;
   transcript: string;
+  remotionTranscript: string;
   subtitleColor: string;
   subtitlePosition: string;
   subtitleLanguage: string;
@@ -30,6 +31,8 @@ export interface WizardState {
   backgroundColor: string;
   includeCaptions: boolean;
   titlePrefix: string;
+  productType: string;
+  videoType: "avatar" | "remotion";
   generatedVideo: VideoJobResult | null;
   styledVideoUrl: string;
   styledVideoPath: string;
@@ -48,7 +51,18 @@ const defaultState: WizardState = {
   systemPrompt: "",
   avatarId: "",
   avatarFilter: "All",
-  transcript: `नमस्ते {{ customer_name }}। मैं एडवोकेट अदिति मेहरा बोल रही हूँ, आपके {{ client_name }} के साथ लोन अकाउंट नंबर {{ lan }}{% if loan_amt %}, लोन राशि {{ loan_amt }}{% endif %} के संबंध में। आपने कई ईएमआई भुगतान समय पर नहीं किए हैं, और आपकी कुल बकाया राशि {{ tos }} है। इस कारण, बैंक ने आपके खिलाफ लोन रिकॉल नोटिस जारी किया है, जिसका अर्थ है कि पूरी बकाया राशि तुरंत चुकानी होगी। यदि नोटिस को नज़रअंदाज़ किया गया, तो बैंक आर्बिट्रेशन शुरू कर सकता है, और पूरी लोन राशि, ब्याज व कानूनी खर्च वसूल सकता है। बैंक की मंशा कानूनी कार्रवाई से बचने की है। यदि आप पूरी राशि नहीं चुका सकते, तो जितना संभव हो उतना भुगतान करें या तुरंत बैंक से संपर्क करें। अभी प्रतिक्रिया देने से आप आर्बिट्रेशन और आगे की कानूनी समस्याओं से बच सकते हैं।`,
+  transcript: "नमस्ते {{ customer_name }}। मैं {{ client_name }} के कानूनी विभाग से बोल रही हूँ। यह आपके लोन अकाउंट नंबर {{ lan }} के संबंध में है। आपकी कुल बकाया राशि {{ tos }} है। कृपया तुरंत {{ contact_details }} पर संपर्क करें।",
+  remotionTranscript: `नमस्ते {{ customer_name }}।
+मैं {{ client_name }} के कानूनी विभाग से बात कर रही हूँ। यह आपके {{ product_type }} के संबंध में एक अत्यंत महत्वपूर्ण और औपचारिक सूचना है।
+आपके ऋण खाते, जिसकी कुल राशि {{ loan_amount }} है, में पिछले कई महीनों से भुगतान नहीं किया गया है।
+वर्तमान में आपकी कुल बकाया राशि {{ tos }} हो चुकी है। बार-बार याद दिलाने के बावजूद, आपकी ओर से कोई सकारात्मक प्रतिक्रिया नहीं मिली है।
+इसी कारणवश, बैंक ने अब आपके विरुद्ध 'लोन रिकॉल नोटिस' (Loan Recall Notice) जारी करने का कड़ा निर्णय लिया है।
+इसका अर्थ यह है कि अब आपको पूरी ऋण राशि का भुगतान तुरंत एक साथ करना होगा।
+यदि आप अगले 48 घंटों के भीतर हमसे संपर्क नहीं करते हैं, तो हमारे पास कानूनी आर्बिट्रेशन (Arbitration) की प्रक्रिया शुरू करने के अलावा कोई विकल्प नहीं बचेगा। 
+इस प्रक्रिया में आपकी संपत्ति की कुर्की और नीलामी भी शामिल हो सकती है, जिसका सारा खर्च और कानूनी शुल्क आपको ही वहन करना होगा।
+कृपया इस चेतावनी को गंभीरता से लें। हम अभी भी आपसी समझौते के माध्यम से इस मामले को हल करने के इच्छुक हैं। 
+भविष्य की कानूनी पेचीदगियों और अपनी क्रेडिट रेटिंग को बचाने के लिए कृपया तुरंत {{ contact_details }} पर कॉल करें।
+धन्यवाद।`,
   subtitleColor: "White",
   subtitlePosition: "Bottom",
   subtitleLanguage: "Hindi",
@@ -67,6 +81,8 @@ const defaultState: WizardState = {
   backgroundColor: "#F4F4F4",
   includeCaptions: true,
   titlePrefix: "Loan Recall",
+  productType: "loan",
+  videoType: "avatar",
   generatedVideo: null,
   styledVideoUrl: "",
   styledVideoPath: "",
@@ -113,11 +129,25 @@ export function useWizardStore() {
   }, []);
 
   const nextStep = useCallback(() => {
-    setState((prev) => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, STEPS.length - 1) }));
+    setState((prev) => {
+      const next = prev.currentStep + 1;
+      // Skip Avatar step if videoType is remotion
+      if (next === 1 && prev.videoType === "remotion") {
+        return { ...prev, currentStep: 2 };
+      }
+      return { ...prev, currentStep: Math.min(next, STEPS.length - 1) };
+    });
   }, []);
 
   const prevStep = useCallback(() => {
-    setState((prev) => ({ ...prev, currentStep: Math.max(prev.currentStep - 1, 0) }));
+    setState((prev) => {
+      const p = prev.currentStep - 1;
+      // Skip Avatar step if videoType is remotion
+      if (p === 1 && prev.videoType === "remotion") {
+        return { ...prev, currentStep: 0 };
+      }
+      return { ...prev, currentStep: Math.max(p, 0) };
+    });
   }, []);
 
   const goToStep = useCallback((step: number) => {
@@ -131,7 +161,7 @@ export function useWizardStore() {
   const canProceed = useCallback((): boolean => {
     const s = state;
     switch (s.currentStep) {
-      case 1: return !!s.avatarId;
+      case 1: return s.videoType === "remotion" || !!s.avatarId;
       case 2:
         return (
           s.transcript.trim().length > 0 &&

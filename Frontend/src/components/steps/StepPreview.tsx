@@ -19,13 +19,20 @@ interface StepPreviewProps {
 }
 
 export function StepPreview({ state, update }: StepPreviewProps) {
-  const avatarName = state.avatarId
+  const avatarName = state.videoType === "remotion" ? "N/A (Template)" : (state.avatarId
     ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
-    : "None";
+    : "None");
   const wordCount = state.transcript.trim() ? state.transcript.trim().split(/\s+/).length : 0;
   const duration = `~${Math.max(1, Math.round(wordCount / 130))} min`;
   const generatedVideo = state.generatedVideo;
   const previewUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
+
+  // Resolve video URL for local Remotion files
+  const videoUrl = generatedVideo?.video_url 
+    ? (generatedVideo.request_mode === "remotion" 
+        ? `http://127.0.0.1:8000/output/remotion/${generatedVideo.video_url.split(/[/\\]/).pop()}`
+        : generatedVideo.video_url)
+    : null;
 
   return (
     <div className="flex gap-8 max-w-5xl">
@@ -56,6 +63,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
               : "aspect-square max-h-[420px]"
           }`}
         >
+<<<<<<< Updated upstream
           {state.generationStatus === "submitting" || state.generationStatus === "styling" ? (
             <ProcessingScreen 
               status={state.generationStatus} 
@@ -66,6 +74,12 @@ export function StepPreview({ state, update }: StepPreviewProps) {
             <video
               controls
               src={previewUrl}
+=======
+          {videoUrl ? (
+            <video
+              controls
+              src={videoUrl}
+>>>>>>> Stashed changes
               poster={generatedVideo?.thumbnail_url ?? undefined}
               className="w-full h-full object-cover"
             />
@@ -77,7 +91,9 @@ export function StepPreview({ state, update }: StepPreviewProps) {
             />
           ) : (
             <div className="text-center">
-              <div className="text-6xl mb-4 opacity-30">🧑‍💻</div>
+              <div className="text-6xl mb-4 opacity-30">
+                {state.videoType === "remotion" ? "🎬" : "🧑‍💻"}
+              </div>
               <button
                 type="button"
                 className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto animate-pulse-glow mb-4"
@@ -85,7 +101,11 @@ export function StepPreview({ state, update }: StepPreviewProps) {
                 <Play className="h-7 w-7 text-primary ml-1" />
               </button>
               <p className="text-sm text-muted-foreground">
-                {state.avatarId ? "Generate the video on the final step to preview it here." : "No avatar selected"}
+                {state.videoType === "remotion" 
+                  ? "Generate the template video to preview it here."
+                  : state.avatarId 
+                    ? "Generate the video on the final step to preview it here." 
+                    : "No avatar selected"}
               </p>
             </div>
           )}
@@ -96,8 +116,9 @@ export function StepPreview({ state, update }: StepPreviewProps) {
       <div className="w-64 shrink-0">
         <div className="surface-card p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Video Summary</h3>
+          <SummaryRow label="Style" value={state.videoType === "remotion" ? "Template" : "Avatar"} />
           <SummaryRow label="Language" value={state.language} />
-          <SummaryRow label="Avatar" value={avatarName} />
+          {state.videoType === "avatar" && <SummaryRow label="Avatar" value={avatarName} />}
           <SummaryRow label="Duration" value={duration} />
           <SummaryRow
             label="Subtitles"

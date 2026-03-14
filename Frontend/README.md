@@ -14,10 +14,20 @@ Open `http://127.0.0.1:8080`.
 
 The frontend talks to FastAPI through [src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts).
 
+<<<<<<< Updated upstream
 The subtitle/logo step now does two real things:
 
 - uploads a PNG/JPG logo to the backend after the base video is finished
 - requests a branded post-processing pass that burns styled subtitles into the final MP4
+=======
+### **Key Improvements**
+- **Organized Storage**:
+  - HeyGen Avatar videos are saved to `output/avatar_output/`
+  - Remotion Template videos are saved to `output/template_output/`
+- **Multi-Language Support**: Backend and Frontend now support 10 languages (English, Hindi, Marathi, Tamil, Telugu, Kannada, Bengali, Gujarati, Malayalam, Marathi).
+- **Independent Scripts**: You can now maintain different scripts for Avatar vs. Remotion modes. Selecting a language in Remotion mode loads a high-quality localized template without erasing your Avatar script.
+- **Improved Rendering**: Remotion videos now use Google Fonts for perfect Indic script rendering across all supported languages.
+>>>>>>> Stashed changes
 
 ## API Base URL
 

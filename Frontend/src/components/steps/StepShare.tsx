@@ -23,13 +23,25 @@ interface StepShareProps {
 
 export function StepShare({ state, update }: StepShareProps) {
   const generatedVideo = state.generatedVideo;
+<<<<<<< Updated upstream
   const videoUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
   const avatarName = state.avatarId
+=======
+  
+  // Resolve video URL for local Remotion files
+  const videoUrl = generatedVideo?.video_url 
+    ? (generatedVideo.request_mode === "remotion" 
+        ? `http://127.0.0.1:8000/output/remotion/${generatedVideo.video_url.split(/[/\\]/).pop()}`
+        : generatedVideo.video_url)
+    : "";
+
+  const avatarName = state.videoType === "remotion" ? "Template" : (state.avatarId
+>>>>>>> Stashed changes
     ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
-    : "None";
+    : "None");
   const statusText =
     state.generationStatus === "completed"
-      ? generatedVideo?.status ?? "completed"
+      ? (generatedVideo?.status ?? "completed")
       : state.generationStatus === "failed"
       ? "failed"
       : state.generationStatus === "styling"

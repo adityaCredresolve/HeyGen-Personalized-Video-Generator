@@ -11,6 +11,7 @@ class LeadRecord(BaseModel):
     tos: str | float | int
     loan_amount: str | float | int | None = None
     contact_details: str | None = None
+    product_type: str | None = "loan"
 
     @field_validator('customer_name', 'lan', 'client_name')
     @classmethod
@@ -24,6 +25,7 @@ class LeadRecord(BaseModel):
 class DirectVideoRequest(LeadRecord):
     avatar_id: str | None = None
     voice_id: str | None = None
+    language: str | None = None
     template_name: str = 'legal_notice_safe_hi.txt'
     script_text: str | None = None
     background_color: str | None = None
@@ -56,7 +58,7 @@ class TemplateVideoRequest(LeadRecord):
 
 
 class VideoJobResult(BaseModel):
-    request_mode: Literal['direct', 'template']
+    request_mode: Literal['direct', 'template', 'remotion']
     video_id: str
     status: str
     video_url: str | None = None
@@ -66,6 +68,7 @@ class VideoJobResult(BaseModel):
     saved_to: Path | None = None
 
 
+<<<<<<< Updated upstream
 class StyledVideoResult(BaseModel):
     video_id: str
     status: Literal['styled']
@@ -76,3 +79,11 @@ class StyledVideoResult(BaseModel):
     subtitle_file_path: Path | None = None
     logo_file_path: Path | None = None
     subtitle_source: Literal['provider', 'transcript', 'disabled']
+=======
+class RemotionVideoResult(BaseModel):
+    job_id: str
+    status: str
+    video_path: str | None = None
+    audio_path: str | None = None
+    error: str | None = None
+>>>>>>> Stashed changes

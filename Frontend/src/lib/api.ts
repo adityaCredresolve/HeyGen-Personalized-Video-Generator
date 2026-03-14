@@ -23,8 +23,10 @@ export interface DirectVideoPayload {
   tos: string;
   loan_amount?: string;
   contact_details?: string;
+  product_type?: string;
   avatar_id?: string;
   voice_id?: string;
+  language?: string;
   template_name?: string;
   script_text?: string;
   background_color?: string;
@@ -35,7 +37,7 @@ export interface DirectVideoPayload {
 }
 
 export interface VideoJobResult {
-  request_mode: "direct" | "template";
+  request_mode: "direct" | "template" | "remotion";
   video_id: string;
   status: string;
   video_url: string | null;
@@ -43,6 +45,8 @@ export interface VideoJobResult {
   title: string | null;
   raw_response: Record<string, unknown>;
   saved_to: string | null;
+  video_path?: string;
+  audio_path?: string;
 }
 
 export interface StyledVideoResult {
@@ -287,10 +291,11 @@ export async function generateDirectVideo(payload: DirectVideoPayload, wait = tr
   });
 }
 
-export async function fetchVideoStatus(videoId: string, requestMode: "direct" | "template" = "direct"): Promise<VideoJobResult> {
+export async function fetchVideoStatus(videoId: string, requestMode: "direct" | "template" | "remotion" = "direct"): Promise<VideoJobResult> {
   return requestJson<VideoJobResult>(`/videos/${videoId}/status?request_mode=${requestMode}`);
 }
 
+<<<<<<< Updated upstream
 export async function stylizeVideo(videoId: string, payload: StylizeVideoPayload): Promise<StyledVideoResult> {
   const formData = new FormData();
   formData.set("include_captions", payload.includeCaptions ? "true" : "false");
@@ -310,4 +315,25 @@ export async function stylizeVideo(videoId: string, payload: StylizeVideoPayload
     method: "POST",
     body: formData,
   });
+=======
+export async function generateRemotionVideo(payload: DirectVideoPayload): Promise<VideoJobResult> {
+  const result = await requestJson<any>("/generate/remotion", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  
+  // Transform backend response to VideoJobResult structure if needed
+  return {
+    request_mode: "remotion",
+    video_id: result.job_id,
+    status: result.status,
+    video_url: result.video_path,
+    thumbnail_url: null,
+    title: `Remotion - ${payload.customer_name}`,
+    raw_response: result,
+    saved_to: result.video_path,
+    video_path: result.video_path,
+    audio_path: result.audio_path,
+  };
+>>>>>>> Stashed changes
 }

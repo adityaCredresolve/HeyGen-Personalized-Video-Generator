@@ -10,6 +10,7 @@ from app.models import DirectVideoRequest, StyledVideoResult, TemplateVideoReque
 from app.services.heygen_client import HeyGenClient
 from app.services.media_styling_service import MediaStylingService, StyleRequest
 from app.services.video_service import VideoService
+from app.services.remotion_service import RemotionService
 
 app = FastAPI(title='Personalized Video Generator', version='1.0.0')
 settings.output_dir.mkdir(parents=True, exist_ok=True)
@@ -22,12 +23,21 @@ app.add_middleware(
 )
 app.mount('/artifacts', StaticFiles(directory=settings.output_dir), name='artifacts')
 service = VideoService()
+remotion_service = RemotionService()
 client = HeyGenClient()
 styling_service = MediaStylingService(client=client)
 
+# Mount static files
+app.mount("/output", StaticFiles(directory="output"), name="output")
+app.mount("/remotion_assets", StaticFiles(directory="Remotion/public"), name="remotion_assets")
+
+
+import traceback
 
 @app.exception_handler(RuntimeError)
 def handle_runtime_error(_request: Request, exc: RuntimeError) -> JSONResponse:
+    print(f"DEBUG: RuntimeError caught: {exc}")
+    traceback.print_exc()
     return JSONResponse(status_code=502, content={'detail': str(exc)})
 
 
@@ -117,3 +127,20 @@ async def stylize_video(
 @app.post('/generate/template')
 def generate_template(request: TemplateVideoRequest, wait: bool = True):
     return service.generate_from_template(request, wait=wait)
+
+
+@app.post('/generate/remotion')
+async def generate_remotion(request: DirectVideoRequest):
+    # 1. Generate TTS
+    tts_result = await remotion_service.generate_tts(request)
+    job_id = tts_result['job_id']
+    
+    # 2. Render Video
+    video_path = await remotion_service.render_video(tts_result['job_id'], request.language or "Hindi")
+    
+    return {
+        "job_id": job_id,
+        "status": "completed",
+        "video_url": f"/output/template_output/{job_id}.mp4",
+        "audio_url": tts_result['audio_url']
+    }

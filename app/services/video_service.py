@@ -136,7 +136,7 @@ class VideoService:
         final_response = self.client.wait_for_video(video_id) if wait else create_response
         status = str(final_response.get('status') or final_response.get('data', {}).get('status') or 'submitted')
         video_url, thumbnail_url, title = self._extract_video_url(final_response)
-        saved = self._persist_result('direct', f'{request.lan}_{video_id}', final_response, video_url) if wait else None
+        saved = self._persist_result('avatar_output', f'{request.lan}_{video_id}', final_response, video_url) if wait else None
         return VideoJobResult(
             request_mode='direct',
             video_id=video_id,
@@ -155,7 +155,7 @@ class VideoService:
         final_response = self.client.wait_for_video(video_id) if wait else create_response
         status = str(final_response.get('status') or final_response.get('data', {}).get('status') or 'submitted')
         video_url, thumbnail_url, title = self._extract_video_url(final_response)
-        saved = self._persist_result('template', f'{request.lan}_{video_id}', final_response, video_url) if wait else None
+        saved = self._persist_result('template_output', f'{request.lan}_{video_id}', final_response, video_url) if wait else None
         return VideoJobResult(
             request_mode='template',
             video_id=video_id,

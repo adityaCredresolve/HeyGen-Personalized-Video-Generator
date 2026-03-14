@@ -10,8 +10,13 @@ import { StepTranscript } from "@/components/steps/StepTranscript";
 import { StepSubtitle } from "@/components/steps/StepSubtitle";
 import { StepPreview } from "@/components/steps/StepPreview";
 import { StepShare } from "@/components/steps/StepShare";
+import { AVATAR_TEMPLATES, REMOTION_TEMPLATES } from "@/lib/templates";
 import { toast } from "sonner";
+<<<<<<< Updated upstream
 import { DirectVideoPayload, fetchAvatars, fetchVideoStatus, generateDirectVideo, stylizeVideo } from "@/lib/api";
+=======
+import { DirectVideoPayload, fetchAvatars, fetchVideoStatus, generateDirectVideo, generateRemotionVideo } from "@/lib/api";
+>>>>>>> Stashed changes
 
 const STEP_META = [
   { title: "Select Language", subtitle: "Choose the language for your avatar's voice and generated content.", next: "Next: Avatar →" },
@@ -190,13 +195,13 @@ const Index = () => {
       return;
     }
 
-    if (!state.avatarId.trim()) {
+    if (state.videoType === "avatar" && !state.avatarId.trim()) {
       toast.error("Select an avatar before generating the video.");
       goToStep(1);
       return;
     }
 
-    if (!state.customerName.trim() || !state.lan.trim() || !state.clientName.trim() || !state.tos.trim() || !state.transcript.trim()) {
+    if (!state.customerName.trim() || !state.lan.trim() || !state.clientName.trim() || !state.tos.trim() || !(state.videoType === "remotion" ? state.remotionTranscript : state.transcript).trim()) {
       toast.error("Complete the lead details and transcript before generating the video.");
       goToStep(2);
       return;
@@ -210,9 +215,11 @@ const Index = () => {
       tos: state.tos.trim(),
       loan_amount: state.loanAmount.trim() || undefined,
       contact_details: state.contactDetails.trim() || undefined,
+      product_type: state.productType,
       avatar_id: state.avatarId.trim() || undefined,
+      language: state.language,
       template_name: state.templateName,
-      script_text: state.transcript.trim() || undefined,
+      script_text: (state.videoType === "remotion" ? state.remotionTranscript : state.transcript).trim() || undefined,
       background_color: state.backgroundColor,
       include_captions: state.includeCaptions,
       title_prefix: state.titlePrefix.trim() || undefined,
@@ -220,8 +227,37 @@ const Index = () => {
       video_height: dimensions.height,
     };
 
-    generateVideoMutation.mutate(payload);
+    if (state.videoType === "remotion") {
+      generateRemotionMutation.mutate(payload);
+    } else {
+      generateVideoMutation.mutate(payload);
+    }
   };
+
+  const generateRemotionMutation = useMutation({
+    mutationFn: (payload: DirectVideoPayload) => generateRemotionVideo(payload),
+    onMutate: () => {
+      update({
+        generationStatus: "submitting",
+        generationError: "",
+      });
+    },
+    onSuccess: (result) => {
+      update({
+        generatedVideo: result,
+        generationStatus: "completed",
+        generationError: "",
+      });
+      toast.success("Template video generated successfully!");
+    },
+    onError: (error) => {
+      update({
+        generationStatus: "failed",
+        generationError: error instanceof Error ? error.message : "Unexpected error while generating the template video.",
+      });
+      toast.error(error instanceof Error ? error.message : "Unexpected error while generating the template video.");
+    },
+  });
 
   const renderStep = () => {
     switch (step) {
@@ -229,7 +265,25 @@ const Index = () => {
         return (
           <StepLanguage
             selected={state.language}
-            onSelect={(lang) => update({ language: lang, outputLanguage: lang })}
+            onSelect={(lang) => {
+              const newPartial: any = { language: lang, outputLanguage: lang };
+              if (state.videoType === "remotion" && REMOTION_TEMPLATES[lang]) {
+                newPartial.remotionTranscript = REMOTION_TEMPLATES[lang];
+              } else if (state.videoType === "avatar" && AVATAR_TEMPLATES[lang]) {
+                newPartial.transcript = AVATAR_TEMPLATES[lang];
+              }
+              update(newPartial);
+            }}
+            videoType={state.videoType}
+            onVideoTypeChange={(type) => {
+              const newPartial: any = { videoType: type, ...RESET_GENERATION_STATE };
+              if (type === "remotion" && REMOTION_TEMPLATES[state.language]) {
+                newPartial.remotionTranscript = REMOTION_TEMPLATES[state.language];
+              } else if (type === "avatar" && AVATAR_TEMPLATES[state.language]) {
+                newPartial.transcript = AVATAR_TEMPLATES[state.language];
+              }
+              update(newPartial);
+            }}
           />
         );
       case 1:
