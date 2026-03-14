@@ -15,9 +15,11 @@ const RESET_GENERATION_STATE = {
 };
 
 const COLORS = [
-  { name: "White", color: "bg-foreground" },
-  { name: "Yellow", color: "bg-accent" },
-  { name: "Teal", color: "bg-primary" },
+  { name: "White", color: "bg-white" },
+  { name: "Blue", color: "bg-blue-500" },
+  { name: "Green", color: "bg-emerald-500" },
+  { name: "Red", color: "bg-red-500" },
+  { name: "Yellow", color: "bg-yellow-400" },
 ];
 const POSITIONS = ["Top", "Center", "Bottom"];
 const LOGO_POSITIONS = ["Top Left", "Top Right", "Bottom Left", "Bottom Right"];
@@ -77,6 +79,17 @@ export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProp
     });
   };
 
+  const subtitlePreviewClass =
+    state.subtitleColor === "Blue"
+      ? "text-blue-400 bg-background/70"
+      : state.subtitleColor === "Green"
+        ? "text-emerald-400 bg-background/70"
+        : state.subtitleColor === "Red"
+          ? "text-red-400 bg-background/70"
+          : state.subtitleColor === "Yellow"
+            ? "text-yellow-300 bg-background/70"
+            : "text-foreground bg-background/70";
+
   return (
     <div className="grid grid-cols-2 gap-8 max-w-5xl">
       {/* Left – preview + subtitle controls */}
@@ -93,15 +106,7 @@ export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProp
           ) : null}
           {state.includeCaptions ? (
             <div className={`relative z-10 flex h-full w-full justify-center ${getPreviewPosition(state.subtitlePosition)}`}>
-              <p
-                className={`text-sm font-semibold px-4 py-2 rounded-lg ${
-                  state.subtitleColor === "White"
-                    ? "text-foreground bg-background/70"
-                    : state.subtitleColor === "Yellow"
-                    ? "text-accent bg-background/70"
-                    : "text-primary bg-background/70"
-                }`}
-              >
+              <p className={`text-sm font-semibold px-4 py-2 rounded-lg ${subtitlePreviewClass}`}>
                 आपके भुगतान पर ध्यान देना आवश्यक है।
               </p>
             </div>

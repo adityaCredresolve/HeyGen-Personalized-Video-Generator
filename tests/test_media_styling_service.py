@@ -63,8 +63,10 @@ def test_subtitle_color_rgb_maps_expected_palette() -> None:
     service = MediaStylingService(client=object())
 
     assert service._subtitle_color_rgb('white') == (255, 255, 255)
+    assert service._subtitle_color_rgb('blue') == (96, 165, 250)
+    assert service._subtitle_color_rgb('green') == (52, 211, 153)
+    assert service._subtitle_color_rgb('red') == (248, 113, 113)
     assert service._subtitle_color_rgb('yellow') == (255, 238, 112)
-    assert service._subtitle_color_rgb('teal') == (104, 228, 214)
 
 
 def test_style_key_changes_when_logo_changes() -> None:

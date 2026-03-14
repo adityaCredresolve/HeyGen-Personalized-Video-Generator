@@ -64,9 +64,11 @@ class SubtitleOverlay:
 
 class MediaStylingService:
     _subtitle_colors = {
-        'white': '&H00FFFFFF',
-        'yellow': '&H0000FFFF',
-        'teal': '&H00A6B814',
+        'white': (255, 255, 255),
+        'blue': (96, 165, 250),
+        'green': (52, 211, 153),
+        'red': (248, 113, 113),
+        'yellow': (255, 238, 112),
     }
     _subtitle_alignments = {
         'top': 8,
@@ -493,11 +495,7 @@ class MediaStylingService:
         return lines
 
     def _subtitle_color_rgb(self, color: str) -> tuple[int, int, int]:
-        if color == 'yellow':
-            return (255, 238, 112)
-        if color == 'teal':
-            return (104, 228, 214)
-        return (255, 255, 255)
+        return self._subtitle_colors.get(color, self._subtitle_colors['white'])
 
     def _run_ffmpeg(
         self,

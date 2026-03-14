@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ReactNode } from "react";
 import { STEPS } from "@/store/wizardStore";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 interface StepLayoutProps {
   step: number;
@@ -105,7 +105,6 @@ export function StepLayout({
                 className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold disabled:opacity-40 flex-1"
               >
                 {primaryActionBusy ? primaryBusyLabel : nextLabel || "Next"}
-                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
               {primaryActionBusy && onCancel && (
                 <Button variant="destructive" onClick={onCancel} className="flex-1 max-w-[140px]">

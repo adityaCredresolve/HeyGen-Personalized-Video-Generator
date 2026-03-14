@@ -28,7 +28,7 @@ export default function MyVideos() {
               <div className="space-y-2">
                 <h1 className="font-display text-4xl text-foreground">My Videos</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  View and manage all your generated videos here, whether you create them with the current avatar flow or the new ScriptMotion flow.
+                  View and manage all your videos.
                 </p>
               </div>
             </div>
@@ -38,16 +38,16 @@ export default function MyVideos() {
                 onClick={() => openCreate("avatar")}
                 className="rounded-2xl border border-primary/25 bg-primary/10 p-4 text-left transition-all hover:border-primary/40 hover:bg-primary/15"
               >
-                <p className="text-sm font-semibold text-foreground">Current Avatar Flow</p>
-                <p className="mt-1 text-xs text-muted-foreground">Use the existing avatar-based video generation path.</p>
+                <p className="text-sm font-semibold text-foreground">Create Avatar Video</p>
+                <p className="mt-1 text-xs text-muted-foreground">Create human like avatar video in seconds.</p>
               </button>
               <button
                 type="button"
                 onClick={() => openCreate("remotion")}
                 className="rounded-2xl border border-border bg-card p-4 text-left transition-all hover:border-primary/30 hover:bg-surface-hover"
               >
-                <p className="text-sm font-semibold text-foreground">ScriptMotion Flow</p>
-                <p className="mt-1 text-xs text-muted-foreground">Start the cinematic script-driven rendering workflow.</p>
+                <p className="text-sm font-semibold text-foreground">Create Text to video</p>
+                <p className="mt-1 text-xs text-muted-foreground">Turn your text into engaging videos in seconds.</p>
               </button>
             </div>
           </section>
@@ -83,9 +83,9 @@ export default function MyVideos() {
               </motion.div>
             </motion.div>
             <div className="space-y-3 mb-8">
-              <h2 className="font-display text-2xl font-semibold text-foreground">Your canvas is empty</h2>
+              <h2 className="font-display text-2xl font-semibold text-foreground">Your Canvas is empty</h2>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                Start with the avatar flow or try the new ScriptMotion workflow for a cinematic script-driven render.
+                No videos yet. Create a video in seconds. Take the credit all day!
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
