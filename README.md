@@ -1,6 +1,6 @@
-# HeyGen Personalized Video Generator
+# Personalized Video Generator
 
-FastAPI backend plus a Vite/React frontend for generating Hindi personalized videos with HeyGen.
+FastAPI backend plus a Vite/React frontend for generating Hindi personalized videos through an external avatar video provider.
 
 The backend currently supports:
 
@@ -80,28 +80,28 @@ Backend image:
 
 ```bash
 cd /Users/aditya/Downloads/heygen_video_generator
-docker build -t heygen-backend .
+docker build -t personalized-video-backend .
 docker run --rm \
   -p 8000:8000 \
   --env-file .env \
   -v "$(pwd)/input:/app/input" \
   -v "$(pwd)/output:/app/output" \
-  heygen-backend
+  personalized-video-backend
 ```
 
 Frontend image:
 
 ```bash
 cd /Users/aditya/Downloads/heygen_video_generator/Frontend
-docker build -t heygen-frontend .
-docker run --rm -p 8080:80 heygen-frontend
+docker build -t personalized-video-frontend .
+docker run --rm -p 8080:80 personalized-video-frontend
 ```
 
 The frontend Docker build currently defaults `VITE_API_BASE_URL` to `http://13.127.221.158:8000`.
 To override it at build time:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t heygen-frontend .
+docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t personalized-video-frontend .
 ```
 
 If you build the frontend with `VITE_API_BASE_URL=/api`, the bundled Nginx config can proxy `/api` requests to `BACKEND_ORIGIN`.

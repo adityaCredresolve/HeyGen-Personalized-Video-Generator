@@ -9,7 +9,7 @@ from app.models import DirectVideoRequest, TemplateVideoRequest
 from app.services.heygen_client import HeyGenClient
 from app.services.video_service import VideoService
 
-app = FastAPI(title='HeyGen Personalized Video Generator', version='1.0.0')
+app = FastAPI(title='Personalized Video Generator', version='1.0.0')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'] if settings.cors_allow_all else settings.cors_origins,

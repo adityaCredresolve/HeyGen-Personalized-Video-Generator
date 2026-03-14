@@ -31,7 +31,7 @@ class HeyGenClient:
                 detail = json.dumps(response.json(), ensure_ascii=False)
             except Exception:
                 detail = response.text
-            raise RuntimeError(f'HeyGen API error {response.status_code}: {detail}') from exc
+            raise RuntimeError(f'Video provider API error {response.status_code}: {detail}') from exc
 
     def generate_video_direct(self, payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(timeout=120.0) as client:
@@ -88,7 +88,7 @@ class HeyGenClient:
             if state in {'completed', 'done', 'success'}:
                 return status
             if state in {'failed', 'error'}:
-                raise RuntimeError(f'HeyGen video generation failed: {status}')
+                raise RuntimeError(f'Video generation failed: {status}')
             time.sleep(interval)
         raise TimeoutError(f'Video {video_id} did not finish within {timeout} seconds')
 

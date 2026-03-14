@@ -1,6 +1,6 @@
 # Frontend
 
-This is the active Vite + React frontend for the HeyGen video generator project.
+This is the active Vite + React frontend for the personalized video generator project.
 
 ## Run Locally
 
@@ -32,13 +32,13 @@ Build:
 
 ```bash
 cd /Users/aditya/Downloads/heygen_video_generator/Frontend
-docker build -t heygen-frontend .
+docker build -t personalized-video-frontend .
 ```
 
 Run:
 
 ```bash
-docker run --rm -p 8080:80 heygen-frontend
+docker run --rm -p 8080:80 personalized-video-frontend
 ```
 
 Current Docker default:
@@ -48,7 +48,7 @@ Current Docker default:
 Override it at build time if needed:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t heygen-frontend .
+docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t personalized-video-frontend .
 ```
 
 If you instead build with `VITE_API_BASE_URL=/api`, [nginx.conf.template](/Users/aditya/Downloads/heygen_video_generator/Frontend/nginx.conf.template) can proxy API calls through `BACKEND_ORIGIN`.

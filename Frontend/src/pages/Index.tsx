@@ -39,11 +39,11 @@ const Index = () => {
   const step = state.currentStep;
   const meta = STEP_META[step];
   const avatarsQuery = useQuery({
-    queryKey: ["heygen-avatars"],
+    queryKey: ["avatars"],
     queryFn: fetchAvatars,
   });
   const statusQuery = useQuery({
-    queryKey: ["heygen-video-status", state.generatedVideo?.video_id],
+    queryKey: ["video-status", state.generatedVideo?.video_id],
     queryFn: () => fetchVideoStatus(state.generatedVideo!.video_id, state.generatedVideo?.request_mode ?? "direct"),
     enabled: Boolean(state.generatedVideo?.video_id) && state.generationStatus === "submitting",
     refetchInterval: 5000,
@@ -62,7 +62,10 @@ const Index = () => {
         generationStatus: "submitting",
         generationError: "",
       });
-      toast.success("Video submitted to HeyGen. We’ll keep checking the status.");
+      const wordCount = state.transcript.trim() ? state.transcript.trim().split(/\s+/).length : 0;
+      const durationMin = Math.max(1, Math.round(wordCount / 130));
+      const estTime = Math.max(2, durationMin * 2);
+      toast.success(`Video creation under progress. Estimated time: ~${estTime} mins. We'll notify you when it's ready.`);
     },
     onError: (error) => {
       update({
@@ -206,7 +209,7 @@ const Index = () => {
           lastAction={handleExport}
           lastLabel={state.generatedVideo ? "Regenerate Video" : "Generate Video"}
           primaryActionBusy={generateVideoMutation.isPending}
-          primaryBusyLabel="Generating..."
+          primaryBusyLabel="Video creation under progress..."
         >
           {renderStep()}
         </StepLayout>

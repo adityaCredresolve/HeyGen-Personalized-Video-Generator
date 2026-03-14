@@ -83,8 +83,8 @@ export function StepShare({ state, update }: StepShareProps) {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/30">
           <LoaderCircle className="h-6 w-6 text-primary shrink-0 animate-spin" />
           <div>
-            <p className="text-sm font-semibold text-foreground">Generating with HeyGen</p>
-            <p className="text-xs text-muted-foreground">The job is submitted. The frontend is polling HeyGen status in the background.</p>
+            <p className="text-sm font-semibold text-foreground">Generating video</p>
+            <p className="text-xs text-muted-foreground">The job is submitted. The frontend is polling status in the background.</p>
           </div>
         </div>
       ) : state.generationStatus === "failed" ? (

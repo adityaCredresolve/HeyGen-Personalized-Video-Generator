@@ -47,7 +47,7 @@ class VideoService:
         height = request.video_height or settings.default_video_height
         voice_id = request.voice_id or settings.heygen_voice_id
 
-        # HeyGen's direct generate endpoint validates text voices under voice.text.*.
+        # The provider's direct generate endpoint validates text voices under voice.text.*.
         # Keep the top-level fields too for backward compatibility with older payload variants.
         voice_text: dict[str, Any] = {
             'input_text': script_text,
@@ -115,7 +115,7 @@ class VideoService:
         status = str(status_response.get('status') or status_response.get('data', {}).get('status') or 'submitted')
         state = status.lower()
         if state in {'failed', 'error'}:
-            raise RuntimeError(f'HeyGen video generation failed: {status_response}')
+            raise RuntimeError(f'Video generation failed: {status_response}')
 
         video_url, thumbnail_url, title = self._extract_video_url(status_response)
         return VideoJobResult(

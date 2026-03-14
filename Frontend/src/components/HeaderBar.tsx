@@ -13,6 +13,7 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
   const location = useLocation();
   const isVideosPage = location.pathname === "/";
   const isCreatePage = location.pathname === "/create";
+  const isTemplatesPage = location.pathname === "/templates";
 
   const handlePrimaryAction = () => {
     navigate("/create");
@@ -31,9 +32,14 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
       </motion.h1>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-          <LayoutTemplate className="mr-2 h-4 w-4" />
-          Template Library
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/templates")}
+          className={isTemplatesPage ? "text-foreground bg-secondary" : "text-muted-foreground hover:text-foreground"}
+        >
+          <LayoutTemplate className="md:mr-2 h-4 w-4" />
+          <span className="hidden md:inline">Template Library</span>
         </Button>
         <Button
           variant="ghost"
@@ -41,8 +47,8 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
           onClick={() => navigate("/")}
           className={isVideosPage ? "text-foreground bg-secondary" : "text-muted-foreground hover:text-foreground"}
         >
-          <Video className="mr-2 h-4 w-4" />
-          My Videos
+          <Video className="md:mr-2 h-4 w-4" />
+          <span className="hidden md:inline">My Videos</span>
         </Button>
         <Button
           size="sm"

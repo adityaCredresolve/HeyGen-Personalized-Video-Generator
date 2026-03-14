@@ -14,7 +14,7 @@ export default function MyVideos() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <HeaderBar primaryLabel="Avatar Creation" />
+      <HeaderBar primaryLabel="Create Video" />
 
       <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto space-y-8">
@@ -24,18 +24,11 @@ export default function MyVideos() {
               <div className="space-y-2">
                 <h1 className="font-display text-4xl text-foreground">My Videos</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  Start users in the video library, then move them into avatar creation only when they are ready to build a new video.
+                  View and manage all your generated avatar videos here.
                 </p>
               </div>
             </div>
 
-            <Button
-              size="lg"
-              onClick={() => navigate("/create")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
-            >
-              Avatar Creation
-            </Button>
           </section>
 
           <section className="grid gap-4 md:grid-cols-3">
@@ -66,7 +59,7 @@ export default function MyVideos() {
               onClick={() => navigate("/create")}
               className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
             >
-              Go to Avatar Creation
+              Go to Create Video
             </Button>
           </section>
         </div>

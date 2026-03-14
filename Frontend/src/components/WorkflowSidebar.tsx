@@ -8,7 +8,7 @@ interface WorkflowSidebarProps {
 
 export function WorkflowSidebar({ currentStep, onStepClick }: WorkflowSidebarProps) {
   return (
-    <aside className="w-56 shrink-0 border-r border-border bg-sidebar flex flex-col h-full">
+    <aside className="w-56 shrink-0 border-r border-border bg-sidebar hidden md:flex flex-col h-full">
       <div className="p-5 flex-1">
         <p className="text-[11px] font-semibold tracking-widest text-muted-foreground mb-5 uppercase">
           Workflow

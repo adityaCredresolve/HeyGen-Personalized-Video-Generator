@@ -6,47 +6,47 @@
 
 @layer base {
   :root {
-    --background: 260 40% 5%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 260 40% 5%;
 
-    --card: 260 30% 10%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 40% 5%;
 
-    --popover: 260 30% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 40% 5%;
 
     --primary: 270 80% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 260 30% 16%;
-    --secondary-foreground: 210 40% 90%;
+    --secondary: 260 20% 96%;
+    --secondary-foreground: 260 40% 5%;
 
-    --muted: 260 30% 14%;
-    --muted-foreground: 260 20% 65%;
+    --muted: 260 20% 96%;
+    --muted-foreground: 260 20% 45%;
 
     --accent: 280 80% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 260 40% 5%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 260 30% 20%;
-    --input: 260 30% 20%;
+    --border: 260 20% 90%;
+    --input: 260 20% 90%;
     --ring: 270 80% 65%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 260 40% 5%;
-    --sidebar-foreground: 260 20% 75%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 260 20% 45%;
     --sidebar-primary: 270 80% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 30% 16%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 260 30% 20%;
+    --sidebar-accent: 260 20% 92%;
+    --sidebar-accent-foreground: 260 40% 5%;
+    --sidebar-border: 260 20% 90%;
     --sidebar-ring: 270 80% 65%;
 
-    --surface: 260 30% 12%;
-    --surface-hover: 260 30% 16%;
+    --surface: 0 0% 100%;
+    --surface-hover: 260 20% 98%;
     --glow-primary: 270 80% 65%;
     --success: 152 70% 50%;
   }
@@ -82,11 +82,11 @@
   }
 
   .surface-card {
-    @apply bg-card rounded-xl border border-border;
+    @apply bg-card rounded-xl border border-border shadow-sm;
   }
 
   .surface-elevated {
-    background: hsl(222 35% 12%);
-    @apply rounded-xl border border-border;
+    background: hsl(0 0% 100%);
+    @apply rounded-xl border border-border shadow-md;
   }
 }

@@ -29,7 +29,7 @@ export function StepAvatar({
       <div className="rounded-xl border border-border bg-card p-4 mb-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-foreground">HeyGen avatar library</p>
+            <p className="text-sm font-semibold text-foreground">Avatar library</p>
             <p className="text-xs text-muted-foreground">
               Select a live avatar from the backend or paste an `avatar_id` manually below.
             </p>
@@ -67,7 +67,7 @@ export function StepAvatar({
         ))}
       </div>
 
-      <div className="grid grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {filtered.length === 0 && !isLoading ? (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
             No avatars matched this filter. Paste an avatar ID manually to keep going.
@@ -86,7 +86,7 @@ export function StepAvatar({
                   : "border-border bg-card hover:bg-surface-hover"
               }`}
             >
-              <div className="w-20 h-20 rounded-2xl bg-secondary mx-auto mb-3 overflow-hidden flex items-center justify-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-secondary mx-auto mb-3 overflow-hidden flex items-center justify-center">
                 {avatar.previewImageUrl ? (
                   <img src={avatar.previewImageUrl} alt={avatar.name} className="w-full h-full object-cover" />
                 ) : (
@@ -122,7 +122,7 @@ export function StepAvatar({
         <Input
           value={selectedId}
           onChange={(event) => onSelect(event.target.value)}
-          placeholder="Paste a HeyGen avatar_id"
+          placeholder="Paste an avatar_id"
           className="bg-secondary border-border"
         />
         <p className="text-xs text-muted-foreground">

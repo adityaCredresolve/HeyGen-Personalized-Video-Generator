@@ -7,6 +7,15 @@ export interface AvatarOption {
   raw: Record<string, unknown>;
 }
 
+export interface TemplateOption {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  raw: Record<string, unknown>;
+}
+
 export interface DirectVideoPayload {
   customer_name: string;
   lan: string;
@@ -139,12 +148,16 @@ function normalizeAvatar(rawAvatar: Record<string, unknown>): AvatarOption | nul
     asString(rawAvatar.title) ??
     id;
 
-  const category =
+  let category =
     asString(rawAvatar.gender) ??
     asString(rawAvatar.style) ??
     asString(rawAvatar.group) ??
     asString(rawAvatar.motion) ??
-    "HeyGen";
+    "Avatar";
+
+  if (category.toLowerCase() === "unknown") {
+    category = "My Avatars";
+  }
 
   const previewImageUrl =
     asString(rawAvatar.preview_image_url) ??
@@ -163,11 +176,85 @@ function normalizeAvatar(rawAvatar: Record<string, unknown>): AvatarOption | nul
   };
 }
 
+function extractTemplateArray(payload: unknown): Record<string, unknown>[] {
+  const root = asRecord(payload);
+  const data = asRecord(root.data);
+  const candidates: unknown[] = [
+    root.templates,
+    data.templates,
+    data.list,
+    data.items,
+    root.items,
+    root.data,
+  ];
+
+  const array = candidates.find((candidate) => Array.isArray(candidate));
+  if (!Array.isArray(array)) {
+    return [];
+  }
+
+  return array
+    .map((item) => asRecord(item))
+    .filter((item) => Object.keys(item).length > 0);
+}
+
+function normalizeTemplate(rawTemplate: Record<string, unknown>): TemplateOption | null {
+  const id =
+    asString(rawTemplate.template_id) ??
+    asString(rawTemplate.id) ??
+    asString(rawTemplate.templateId);
+
+  if (!id) {
+    return null;
+  }
+
+  return {
+    id,
+    name:
+      asString(rawTemplate.name) ??
+      asString(rawTemplate.title) ??
+      asString(rawTemplate.template_name) ??
+      id,
+    description:
+      asString(rawTemplate.description) ??
+      asString(rawTemplate.summary) ??
+      asString(rawTemplate.subtitle),
+    status:
+      asString(rawTemplate.status) ??
+      asString(rawTemplate.state),
+    updatedAt:
+      asString(rawTemplate.updated_at) ??
+      asString(rawTemplate.updatedAt) ??
+      asString(rawTemplate.created_at),
+    raw: rawTemplate,
+  };
+}
+
 export async function fetchAvatars(): Promise<AvatarOption[]> {
   const response = await requestJson<unknown>("/meta/avatars");
-  return extractAvatarArray(response)
+  const parsedAvatars = extractAvatarArray(response)
     .map((avatar) => normalizeAvatar(avatar))
-    .filter((avatar): avatar is AvatarOption => avatar !== null)
+    .filter((avatar): avatar is AvatarOption => avatar !== null);
+
+  // Deduplicate by avatar.id
+  const seenIds = new Set<string>();
+  const uniqueAvatars: AvatarOption[] = [];
+  
+  for (const avatar of parsedAvatars) {
+    if (!seenIds.has(avatar.id)) {
+      seenIds.add(avatar.id);
+      uniqueAvatars.push(avatar);
+    }
+  }
+
+  return uniqueAvatars.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export async function fetchTemplates(): Promise<TemplateOption[]> {
+  const response = await requestJson<unknown>("/meta/templates");
+  return extractTemplateArray(response)
+    .map((template) => normalizeTemplate(template))
+    .filter((template): template is TemplateOption => template !== null)
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
