@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     edge_tts_binary: str = 'edge-tts'
     remotion_npx_binary: str = 'npx'
     remotion_browser_executable: str | None = None
+    remotion_renderer_port: int | None = None
+    remotion_force_ipv4: bool = True
     poll_interval_seconds: int = 8
     poll_timeout_seconds: int = 1200
     strict_validation: bool = True

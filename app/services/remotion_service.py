@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -77,6 +78,19 @@ class RemotionService:
             if Path(candidate).exists():
                 return candidate
         return None
+
+    def _resolve_renderer_port(self) -> int | None:
+        configured = settings.remotion_renderer_port
+        if configured is not None:
+            return configured
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind(('127.0.0.1', 0))
+                sock.listen(1)
+                return int(sock.getsockname()[1])
+        except OSError:
+            return None
 
     def ensure_project_available(self) -> None:
         required_paths = [
@@ -533,6 +547,7 @@ class RemotionService:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         command_prefix = self._resolve_remotion_command()
         browser_executable = self._resolve_browser_executable()
+        renderer_port = self._resolve_renderer_port()
         leads_path = self.remotion_path / 'leads.json'
         leads: list[dict[str, Any]] = []
         if leads_path.exists():
@@ -556,6 +571,10 @@ class RemotionService:
             'src/index.jsx',
         ]
         shared_flags = ['--overwrite']
+        if settings.remotion_force_ipv4:
+            shared_flags.append('--ipv4')
+        if renderer_port is not None:
+            shared_flags.extend(['--port', str(renderer_port)])
         if browser_executable:
             shared_flags.extend(['--browser-executable', browser_executable])
 
