@@ -1,31 +1,19 @@
 # Personalized Video Generator
 
-FastAPI backend plus a Vite/React frontend for generating personalized Hindi videos through avatar and Remotion-based flows.
+FastAPI backend plus a Vite/React frontend for creating personalized videos through two flows:
 
-The backend currently supports:
+- Avatar video generation through HeyGen
+- Text-to-video rendering through the local `Remotion/` project
 
-1. Direct video generation with an existing `avatar_id`
-2. Template-based video generation with an existing `template_id`
-3. Cinematic Remotion generation with scene-based, lead-personalized MP4 output
-4. Polling video status and saving metadata / downloaded MP4 output
-5. Post-processing completed videos with branded logo overlays and styled burned-in subtitles
-
-The active frontend lives in [Frontend/README.md](/Users/aditya/Downloads/heygen_video_generator/Frontend/README.md).
+The app also includes email/password auth, autosaved drafts, a "My Videos" library, and subtitle/logo post-processing for avatar renders.
 
 ## Repo Layout
 
 ```text
-heygen_video_generator/
+.
 ├── app/
-│   ├── config.py
-│   ├── main.py
-│   ├── models.py
-│   ├── services/
-│   └── templates/
 ├── Frontend/
 ├── Remotion/
-├── input/
-├── output/
 ├── sample_data/
 ├── scripts/
 ├── tests/
@@ -34,15 +22,24 @@ heygen_video_generator/
 └── README.md
 ```
 
+## Prerequisites
+
+- Python 3.11
+- Node.js 20+ for local frontend and Remotion installs
+- `ffmpeg`
+- A MongoDB connection string
+- Chrome or Chromium for local Remotion MP4 rendering, or `REMOTION_BROWSER_EXECUTABLE`
+
 ## Environment
 
-Copy [.env.example](/Users/aditya/Downloads/heygen_video_generator/.env.example) to `.env` and fill in:
+Copy `.env.example` to `.env` and fill in the required values:
 
 ```env
-HEYGEN_API_KEY=...
-HEYGEN_AVATAR_ID=...
-HEYGEN_VOICE_ID=...
-HEYGEN_TEMPLATE_ID=...
+HEYGEN_API_KEY=
+HEYGEN_BASE_URL=https://api.heygen.com
+HEYGEN_AVATAR_ID=
+HEYGEN_VOICE_ID=
+HEYGEN_TEMPLATE_ID=
 HEYGEN_TEMPLATE_PAYLOAD_PATH=sample_data/template_payload.json
 DEFAULT_VIDEO_WIDTH=1280
 DEFAULT_VIDEO_HEIGHT=720
@@ -52,9 +49,16 @@ FFMPEG_BINARY=ffmpeg
 REMOTION_DIR=Remotion
 EDGE_TTS_BINARY=edge-tts
 REMOTION_NPX_BINARY=npx
+REMOTION_BROWSER_EXECUTABLE=
 POLL_INTERVAL_SECONDS=8
 POLL_TIMEOUT_SECONDS=1200
-CORS_ALLOW_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+STRICT_VALIDATION=true
+CORS_ALLOW_ALL=true
+CORS_ALLOW_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,http://localhost:4173,http://127.0.0.1:4173
+MONGODB_URI=
+SECRET_KEY=change-me
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
 ```
 
 ## Run Locally
@@ -62,7 +66,6 @@ CORS_ALLOW_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 Backend:
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator
 python3.11 -m venv .venv311
 source .venv311/bin/activate
 pip install -r requirements.txt
@@ -72,44 +75,45 @@ uvicorn app.main:app --reload
 Frontend:
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+cd Frontend
 npm install
 npm run dev
+```
+
+Remotion dependencies:
+
+```bash
+cd Remotion
+npm install
 ```
 
 Open `http://127.0.0.1:8080`.
 
-Remotion project:
-
-```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Remotion
-npm install
-```
-
-Optional local preview studio:
-
-```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Remotion
-npm run dev
-```
-
-Optional composition bundle smoke check:
-
-```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Remotion
-./node_modules/.bin/remotion bundle src/index.jsx /tmp/remotion-bundle
-```
-
-If you want the frontend to call a custom backend directly, copy [Frontend/.env.example](/Users/aditya/Downloads/heygen_video_generator/Frontend/.env.example) to `Frontend/.env` and set `VITE_API_BASE_URL`.
+The frontend defaults to `/api`, and Vite proxies that to the backend in development. If you want the browser to call FastAPI directly, set `VITE_API_BASE_URL` in `Frontend/.env`.
 
 ## Docker
 
-Backend image:
+### Backend image
+
+The backend image now includes:
+
+- Python dependencies
+- `ffmpeg`
+- Node + npm for Remotion
+- Chromium for Remotion rendering
+- The local `Remotion/` project and its npm dependencies
+
+Build:
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator
 docker build -t personalized-video-backend .
+```
+
+Run:
+
+```bash
 docker run --rm \
+  --shm-size=2g \
   -p 8000:8000 \
   --env-file .env \
   -v "$(pwd)/input:/app/input" \
@@ -117,126 +121,60 @@ docker run --rm \
   personalized-video-backend
 ```
 
-Frontend image:
+### Frontend image
+
+The frontend image now defaults `VITE_API_BASE_URL` to `/api` and proxies backend requests through `BACKEND_ORIGIN`.
+
+Build:
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+cd Frontend
 docker build -t personalized-video-frontend .
+```
+
+Run:
+
+```bash
 docker run --rm -p 8080:80 personalized-video-frontend
 ```
 
-The frontend Docker build currently defaults `VITE_API_BASE_URL` to `http://13.127.221.158:8000`.
-To override it at build time:
+To point the container at a different backend:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t personalized-video-frontend .
+docker run --rm \
+  -p 8080:80 \
+  -e BACKEND_ORIGIN=http://host.docker.internal:8000 \
+  personalized-video-frontend
 ```
 
-If you build the frontend with `VITE_API_BASE_URL=/api`, the bundled Nginx config can proxy `/api` requests to `BACKEND_ORIGIN`.
+On Linux, add:
+
+```bash
+--add-host=host.docker.internal:host-gateway
+```
 
 ## API Endpoints
 
+- `POST /auth/signup`
+- `POST /auth/login`
 - `GET /health`
 - `GET /meta/avatars`
 - `GET /meta/voices`
 - `GET /meta/templates`
 - `GET /meta/template/{template_id}`
 - `POST /generate/direct`
+- `POST /generate/template`
 - `POST /generate/remotion`
 - `GET /videos/{video_id}/status`
 - `POST /videos/{video_id}/stylize`
-- `POST /generate/template`
-
-## Example Direct Request
-
-```bash
-curl -X POST http://127.0.0.1:8000/generate/direct?wait=true \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customer_name": "Ramesh Kumar",
-    "lan": "LAN12345",
-    "client_name": "ABC Finance",
-    "tos": 38450,
-    "loan_amount": 120000,
-    "contact_details": "1800-123-456",
-    "template_name": "legal_notice_safe_hi.txt"
-  }'
-```
-
-## Example Template Request
-
-```bash
-curl -X POST http://127.0.0.1:8000/generate/template?wait=true \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customer_name": "Ramesh Kumar",
-    "lan": "LAN12345",
-    "client_name": "ABC Finance",
-    "tos": 38450,
-    "loan_amount": 120000
-  }'
-```
-
-## Example Remotion Request
-
-```bash
-curl -X POST http://127.0.0.1:8000/generate/remotion \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customer_name": "Ramesh Kumar",
-    "lan": "LAN12345",
-    "client_name": "ABC Finance",
-    "tos": 38450,
-    "loan_amount": 120000,
-    "contact_details": "1800-123-456",
-    "product_type": "loan",
-    "language": "Hindi",
-    "script_text": "नमस्ते {customer_name}। आपके {product_type} खाते {lan} के संबंध में यह एक महत्वपूर्ण औपचारिक सूचना है।"
-  }'
-```
-
-## Example Styling Request
-
-Use this after `/generate/direct?wait=false` has returned a `video_id` and the status endpoint shows it as completed.
-
-```bash
-curl -X POST http://127.0.0.1:8000/videos/VIDEO_ID/stylize \
-  -F include_captions=true \
-  -F subtitle_color=Yellow \
-  -F subtitle_position=Bottom \
-  -F transcript='नमस्ते रमेश कुमार। कृपया तुरंत भुगतान या संपर्क करें।' \
-  -F logo_position='Top Right' \
-  -F logo_opacity=80 \
-  -F logo_file=@/absolute/path/to/logo.png
-```
-
-## Account Inspection
-
-```bash
-source .venv311/bin/activate
-python scripts/inspect_account.py avatars
-python scripts/inspect_account.py voices
-python scripts/inspect_account.py templates
-python scripts/get_template_details.py YOUR_TEMPLATE_ID --version v3
-```
-
-## Tests
-
-```bash
-cd /Users/aditya/Downloads/heygen_video_generator
-source .venv311/bin/activate
-PYTHONPATH=. pytest -q
-```
+- `GET /my-videos`
+- `POST /drafts/save`
+- `GET /drafts`
 
 ## Notes
 
-- The Hindi transcript templates live in [app/templates/legal_notice_raw_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_raw_hi.txt) and [app/templates/legal_notice_safe_hi.txt](/Users/aditya/Downloads/heygen_video_generator/app/templates/legal_notice_safe_hi.txt).
-- Output metadata and downloaded videos are written under `output/`.
-- Styled artifacts are served from `/artifacts/...` and written under `output/styled/`.
-- Subtitle styling and logo overlay use local `ffmpeg`; the provider video is generated first and then post-processed.
-- Remotion rendering uses the local [Remotion/](/Users/aditya/Downloads/heygen_video_generator/Remotion) project plus `edge-tts`.
-- The Remotion composition is now a multi-scene cinematic timeline, not a static single-card template. It personalizes each lead through scene payloads, animated amount emphasis, subtitle-aware motion, and a CTA scene.
-- `/generate/remotion` keeps the existing request shape. The backend enriches each lead record with `display_amounts`, `scene_payload`, `headline_text`, `cta_text`, and `urgency_level` before render.
-- Single-brace placeholders like `{customer_name}` and shorthand aliases such as `{loan_amt}`, `{balance}`, `{helpline}`, and `{product}` are supported in Remotion script input.
-- Local Remotion rendering depends on a working browser runtime. Bundling works with `remotion bundle`; full local MP4 rendering may require Chrome / Headless Shell availability on the machine.
-- The frontend uses [Frontend/src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts) for all backend calls.
+- Avatar drafts default to `app/templates/legal_notice_raw_hi.txt`.
+- Text-to-video uses the local `Remotion/` project plus `edge-tts`.
+- Generated Remotion runtime files under `Remotion/public/audio/` and `Remotion/public/metadata.json` should not be committed.
+- If local Remotion renders fail to launch a browser, set `REMOTION_BROWSER_EXECUTABLE` explicitly.
+- The active frontend docs live in `Frontend/README.md`.

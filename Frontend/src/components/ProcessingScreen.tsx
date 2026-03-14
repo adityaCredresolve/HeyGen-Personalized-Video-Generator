@@ -49,18 +49,6 @@ export function ProcessingScreen({ status, estimatedTime, isLongVideo, videoType
           <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
         </Canvas>
       </div>
-
-      <div className="z-10 mt-32 flex flex-col items-center gap-4">
-        <div className="rounded-full border border-primary/25 bg-background/75 px-4 py-2 backdrop-blur-md shadow-xl">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-          </span>
-        </div>
-        <div className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md">
-          {status === "styling" ? "Finalizing" : videoType === "remotion" ? "ScriptMotion" : "Processing"}
-        </div>
-      </div>
     </div>
   );
 }

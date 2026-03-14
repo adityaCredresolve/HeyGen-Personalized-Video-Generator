@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
 const Signup: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,14 +20,13 @@ const Signup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/signup`, {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username,
-          email,
+          email: email.trim().toLowerCase(),
           password,
-          full_name: fullName,
+          full_name: fullName.trim(),
         }),
       });
 
@@ -61,32 +61,21 @@ const Signup: React.FC = () => {
             Create Account
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-slate-400">
-            Start generating personalized videos today
+            Sign up with your full name, email, and password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Username</label>
-                <Input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="johndoe"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Full Name</label>
-                <Input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">Full Name</label>
+              <Input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="John Doe"
+                autoComplete="name"
+                required
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none">Email</label>
@@ -95,6 +84,7 @@ const Signup: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
+                autoComplete="email"
                 required
               />
             </div>
@@ -105,6 +95,7 @@ const Signup: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 required
               />
             </div>

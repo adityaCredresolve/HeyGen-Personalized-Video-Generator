@@ -43,7 +43,7 @@ export function StepLanguage({ selected, onSelect, videoType, onVideoTypeChange 
                   : "text-muted-foreground hover:text-foreground"
                 }`}
             >
-              Avatar Video flow
+              Avatar Video
             </button>
             <button
               onClick={() => onVideoTypeChange("remotion")}
@@ -52,7 +52,7 @@ export function StepLanguage({ selected, onSelect, videoType, onVideoTypeChange 
                   : "text-muted-foreground hover:text-foreground"
                 }`}
             >
-              Text to video flow
+              Text to Video
             </button>
           </div>
         </div>

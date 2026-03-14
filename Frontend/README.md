@@ -1,42 +1,31 @@
 # Frontend
 
-This is the active Vite + React frontend for the personalized video generator project.
+This is the active Vite + React app for the personalized video generator.
 
-## Run Locally
+## Local Development
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+cd Frontend
 npm install
 npm run dev
 ```
 
 Open `http://127.0.0.1:8080`.
 
-The frontend talks to FastAPI through [src/lib/api.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/lib/api.ts).
+The app defaults `VITE_API_BASE_URL` to `/api`, and Vite proxies that to `http://127.0.0.1:8000` during development.
 
-The subtitle/logo step now does two real things:
-
-- uploads a PNG/JPG logo to the backend after the base video is finished
-- requests a branded post-processing pass that burns styled subtitles into the final MP4
-
-## API Base URL
-
-Without any env override, the frontend uses `/api`, and Vite proxies that to the local FastAPI server during development.
-
-If you want the browser to call FastAPI directly, set:
+If you want the browser to call FastAPI directly instead of using the proxy, create `Frontend/.env` with:
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
-
-You can set that in [Frontend/.env.example](/Users/aditya/Downloads/heygen_video_generator/Frontend/.env.example) or override it in `Frontend/.env`.
 
 ## Docker
 
 Build:
 
 ```bash
-cd /Users/aditya/Downloads/heygen_video_generator/Frontend
+cd Frontend
 docker build -t personalized-video-frontend .
 ```
 
@@ -46,23 +35,35 @@ Run:
 docker run --rm -p 8080:80 personalized-video-frontend
 ```
 
-Current Docker default:
+Docker defaults:
 
 - `VITE_API_BASE_URL=/api`
 - `BACKEND_ORIGIN=http://host.docker.internal:8000`
 
-Override it at build time if needed:
+Override the backend origin at runtime if needed:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t personalized-video-frontend .
+docker run --rm \
+  -p 8080:80 \
+  -e BACKEND_ORIGIN=http://host.docker.internal:8000 \
+  personalized-video-frontend
 ```
 
-The default Docker flow now uses [nginx.conf.template](/Users/aditya/Downloads/heygen_video_generator/Frontend/nginx.conf.template) to proxy `/api` requests through `BACKEND_ORIGIN`, so it works with the local FastAPI app including `/generate/remotion`.
+On Linux, also add:
+
+```bash
+--add-host=host.docker.internal:host-gateway
+```
+
+The Nginx template proxies both `/api` and `/artifacts` to the backend, so avatar, remotion, auth, drafts, and video playback all work through the same frontend container.
 
 ## Key Files
 
-- [src/pages/MyVideos.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/MyVideos.tsx)
-- [src/pages/Index.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/pages/Index.tsx)
-- [src/components/steps/StepSubtitle.tsx](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/components/steps/StepSubtitle.tsx)
-- [src/store/wizardStore.ts](/Users/aditya/Downloads/heygen_video_generator/Frontend/src/store/wizardStore.ts)
-- [Dockerfile](/Users/aditya/Downloads/heygen_video_generator/Frontend/Dockerfile)
+- `src/pages/Index.tsx`
+- `src/pages/MyVideos.tsx`
+- `src/pages/Login.tsx`
+- `src/pages/Signup.tsx`
+- `src/store/wizardStore.ts`
+- `src/lib/api.ts`
+- `nginx.conf.template`
+- `Dockerfile`

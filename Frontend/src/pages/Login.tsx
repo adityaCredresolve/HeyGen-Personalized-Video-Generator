@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -20,10 +22,10 @@ const Login: React.FC = () => {
 
     try {
       const formData = new FormData();
-      formData.append('username', username);
+      formData.append('username', email.trim().toLowerCase());
       formData.append('password', password);
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         body: formData,
       });
@@ -33,9 +35,10 @@ const Login: React.FC = () => {
       }
 
       const data = await response.json();
-      // For simplicity, we decode or just use placeholder data for username/email
-      // A more robust app would fetch user profile or include it in JWT
-      login(data.access_token, username, `${username}@example.com`);
+      login(data.access_token, {
+        email: data.email ?? email.trim().toLowerCase(),
+        fullName: typeof data.full_name === 'string' && data.full_name.trim() ? data.full_name.trim() : null,
+      });
       toast({ title: 'Login Successful', description: 'Welcome back!' });
       navigate('/');
     } catch (error) {
@@ -50,7 +53,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-vh-100 bg-slate-50 dark:bg-slate-950 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md shadow-lg border-2 border-slate-200 dark:border-slate-800">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-6">
@@ -62,18 +65,19 @@ const Login: React.FC = () => {
             Sign In
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-slate-400">
-            Enter your credentials to access your account
+            Sign in with your email and password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">Username</label>
+              <label className="text-sm font-medium leading-none">Email</label>
               <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
                 required
                 className="bg-white dark:bg-slate-900"
               />
@@ -85,6 +89,7 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 required
                 className="bg-white dark:bg-slate-900"
               />

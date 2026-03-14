@@ -1,20 +1,19 @@
-import { Download, Link, MessageCircle, BookmarkPlus, AlertCircle, CheckCircle2, LoaderCircle } from "lucide-react";
+import { Download, Link, MessageCircle, AlertCircle, CheckCircle2, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardState } from "@/store/wizardStore";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const FORMATS = [
-  { id: "MP4", label: "MP4", desc: "Standard video" },
-  { id: "Vertical Social", label: "Vertical Social", desc: "9:16 for Reels/Shorts" },
-  { id: "Square Social", label: "Square Social", desc: "1:1 for feeds" },
+  { id: "MP4", label: "MP4", desc: "Standard video", available: true },
+  { id: "Vertical Social", label: "Vertical Social", desc: "9:16 for Reels/Shorts", available: false },
+  { id: "Square Social", label: "Square Social", desc: "1:1 for feeds", available: false },
 ];
 
 const DELIVERY = [
   { icon: Link, label: "Copy Share Link" },
   { icon: Download, label: "Download Video" },
   { icon: MessageCircle, label: "Send to WhatsApp" },
-  { icon: BookmarkPlus, label: "Save as Template" },
 ];
 
 interface StepShareProps {
@@ -27,10 +26,8 @@ export function StepShare({ state, update }: StepShareProps) {
   const videoUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
   const avatarName =
     state.videoType === "remotion"
-      ? "ScriptMotion"
-      : state.avatarId
-        ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
-        : "None";
+      ? "Text to Video"
+      : state.avatarName || state.avatarId || "None";
   const statusText =
     state.generationStatus === "completed"
       ? generatedVideo?.status ?? "completed"
@@ -82,11 +79,11 @@ export function StepShare({ state, update }: StepShareProps) {
           <CheckCircle2 className="h-6 w-6 text-success shrink-0" />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              {state.videoType === "remotion" ? "Your ScriptMotion video is ready." : "Your video is ready."}
+              {state.videoType === "remotion" ? "Your text video is ready." : "Your video is ready."}
             </p>
             <p className="text-xs text-muted-foreground">
               {state.videoType === "remotion"
-                ? "Use the link below to open, copy, or download the finished ScriptMotion render."
+                ? "Use the link below to open, copy, or download the finished render."
                 : "Use the delivery controls below to share or download it."}
             </p>
           </div>
@@ -96,11 +93,11 @@ export function StepShare({ state, update }: StepShareProps) {
           <LoaderCircle className="h-6 w-6 text-primary shrink-0 animate-spin" />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              {state.videoType === "remotion" ? "Rendering ScriptMotion video" : "Generating video"}
+              {state.videoType === "remotion" ? "Rendering text video" : "Generating video"}
             </p>
             <p className="text-xs text-muted-foreground">
               {state.videoType === "remotion"
-                ? "We are stitching together a personalized ScriptMotion render for this lead."
+                ? "We are stitching together a personalized text-to-video render for this lead."
                 : "Your video is being prepared. We will move you ahead as soon as it is ready."}
             </p>
           </div>
@@ -118,7 +115,7 @@ export function StepShare({ state, update }: StepShareProps) {
           <AlertCircle className="h-6 w-6 text-destructive shrink-0" />
           <div>
             <p className="text-sm font-semibold text-foreground">Generation failed</p>
-            <p className="text-xs text-muted-foreground">{state.generationError || "Check backend logs and try again."}</p>
+            <p className="text-xs text-muted-foreground">{state.generationError || "Something went wrong. Please try again or contact support."}</p>
           </div>
         </div>
       ) : null}
@@ -132,15 +129,25 @@ export function StepShare({ state, update }: StepShareProps) {
               {FORMATS.map((f) => (
                 <button
                   key={f.id}
-                  onClick={() => update({ exportFormat: f.id })}
+                  disabled={!f.available}
+                  onClick={() => f.available && update({ exportFormat: f.id })}
                   className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                    state.exportFormat === f.id
+                    !f.available
+                      ? "border-border bg-card opacity-50 cursor-not-allowed"
+                      : state.exportFormat === f.id
                       ? "border-primary bg-primary/5 glow-purple-sm"
                       : "border-border bg-card hover:bg-surface-hover"
                   }`}
                 >
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-foreground">{f.label}</p>
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      {f.label}
+                      {!f.available && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide">
+                          Soon
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">{f.desc}</p>
                   </div>
                 </button>
@@ -155,7 +162,7 @@ export function StepShare({ state, update }: StepShareProps) {
                 <Button
                   key={d.label}
                   variant="outline"
-                  disabled={!videoUrl && d.label !== "Save as Template"}
+                  disabled={!videoUrl}
                   onClick={() => {
                     if (d.label === "Copy Share Link") {
                       void handleCopyShareLink();
@@ -163,8 +170,6 @@ export function StepShare({ state, update }: StepShareProps) {
                       handleOpenVideo();
                     } else if (d.label === "Send to WhatsApp") {
                       handleShareOnWhatsApp();
-                    } else {
-                      toast.info("Template saving is not wired yet.");
                     }
                   }}
                   className="justify-start border-border bg-card text-muted-foreground hover:text-foreground hover:bg-surface-hover h-auto py-3"
@@ -180,9 +185,12 @@ export function StepShare({ state, update }: StepShareProps) {
         {/* Right – metadata */}
         <div className="surface-card p-6 space-y-4 h-fit">
           <h3 className="text-sm font-semibold text-foreground mb-4">Video Metadata</h3>
-          <Meta label="Video Name" value={generatedVideo?.title ?? `${state.titlePrefix} - Draft`} />
+          <Meta
+            label="Video Name"
+            value={generatedVideo?.title ?? `${state.customerName.trim() || (state.videoType === "remotion" ? "Text to Video" : "Avatar Video")} - Draft`}
+          />
           <Meta label="Created At" value={new Date().toLocaleDateString()} />
-          <Meta label="Style" value={state.videoType === "remotion" ? "ScriptMotion" : "Avatar"} />
+          <Meta label="Style" value={state.videoType === "remotion" ? "Text to Video" : "Avatar"} />
           <Meta label="Language" value={state.language} />
           {state.videoType === "avatar" ? <Meta label="Avatar" value={avatarName} /> : null}
           <Meta label="Status" value={statusText} />
@@ -219,22 +227,22 @@ function HighlightedOutputLink({
       className={cn(
         "relative overflow-hidden rounded-2xl border p-4 transition-all duration-300",
         href
-          ? "border-primary/35 bg-gradient-to-br from-primary/12 via-background to-primary/8 shadow-[0_0_0_1px_rgba(168,85,247,0.08),0_18px_40px_rgba(168,85,247,0.08)]"
+          ? "border-primary/35 bg-gradient-to-br from-primary/12 via-background to-primary/8 shadow-[0_0_0_1px_rgba(95,18,132,0.08),0_18px_40px_rgba(95,18,132,0.08)]"
           : "border-border bg-secondary/30",
       )}
     >
       {href ? (
-        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_40%),linear-gradient(90deg,transparent,rgba(168,85,247,0.12),transparent)] motion-safe:animate-pulse" />
+        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(95,18,132,0.18),transparent_40%),linear-gradient(90deg,transparent,rgba(95,18,132,0.12),transparent)] motion-safe:animate-pulse" />
       ) : null}
       <div className="relative flex items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">Final Output Link</p>
           <p className="text-sm font-medium text-foreground">
-            {href ? "Open or copy this link to access the finished video." : "Your video link will appear here once generation completes."}
+            {href ? "All set! Download or share the link" : "Your video link will appear here once generation completes."}
           </p>
         </div>
         {href ? (
-          <span className="inline-flex h-3 w-3 shrink-0 rounded-full bg-primary shadow-[0_0_18px_rgba(168,85,247,0.65)]" />
+          <span className="inline-flex h-3 w-3 shrink-0 rounded-full bg-primary shadow-[0_0_18px_rgba(95,18,132,0.65)]" />
         ) : null}
       </div>
       {href ? (
@@ -243,7 +251,7 @@ function HighlightedOutputLink({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-3 rounded-xl border border-primary/30 bg-background/80 px-4 py-3 text-left transition-all duration-300 hover:border-primary/50 hover:bg-background hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
+            className="group flex items-center gap-3 rounded-xl border border-primary/30 bg-background/80 px-4 py-3 text-left transition-all duration-300 hover:border-primary/50 hover:bg-background hover:shadow-[0_0_24px_rgba(95,18,132,0.14)]"
             title={href}
           >
             <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -257,7 +265,7 @@ function HighlightedOutputLink({
           <div className="flex gap-2">
             <Button type="button" asChild className="flex-1">
               <a href={href} target="_blank" rel="noopener noreferrer">
-                Open
+                Open Video
               </a>
             </Button>
             <Button type="button" variant="outline" onClick={onCopy} className="flex-1 border-primary/30 text-primary hover:bg-primary/5">

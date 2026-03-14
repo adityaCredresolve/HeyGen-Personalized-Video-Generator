@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play } from "lucide-react";
+import { Clapperboard, Film } from "lucide-react";
 import { WizardState } from "@/store/wizardStore";
 import { ProcessingScreen } from "@/components/ProcessingScreen";
 
@@ -24,9 +24,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
   const avatarName =
     state.videoType === "remotion"
       ? "Text to Video"
-      : state.avatarId
-        ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
-        : "None";
+      : state.avatarName || state.avatarId || "None";
   const wordCount = activeTranscript.trim() ? activeTranscript.trim().split(/\s+/).length : 0;
   const duration = `~${Math.max(1, Math.round(wordCount / 130))} min`;
   const generatedVideo = state.generatedVideo;
@@ -126,19 +124,15 @@ export function StepPreview({ state, update }: StepPreviewProps) {
             />
           ) : (
             <div className="text-center">
-              <div className="text-6xl mb-4 opacity-30">{state.videoType === "remotion" ? "🎬" : "🧑‍💻"}</div>
-              <button
-                type="button"
-                className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto animate-pulse-glow mb-4"
-              >
-                <Play className="h-7 w-7 text-primary ml-1" />
-              </button>
+              <div className="w-20 h-20 rounded-[2rem] bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
+                {state.videoType === "remotion"
+                  ? <Film className="h-9 w-9 text-primary opacity-70" />
+                  : <Clapperboard className="h-9 w-9 text-primary opacity-70" />}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {state.videoType === "remotion"
-                  ? "Render the ScriptMotion video to preview the multi-scene output here."
-                  : state.avatarId
-                    ? "Generate the video to preview it here."
-                    : "No avatar selected"}
+                  ? "Generate the video below to preview the multi-scene output here."
+                  : "Generate the video to preview it here."}
               </p>
             </div>
           )}
@@ -147,7 +141,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
         {isProcessing ? (
           <div className="rounded-xl border border-border bg-card/70 px-5 py-4">
             <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              <span>{state.videoType === "remotion" ? "ScriptMotion Progress" : "Generation Progress"}</span>
+              <span>{state.videoType === "remotion" ? "Text to Video Progress" : "Generation Progress"}</span>
               <span>{Math.max(1, Math.round(phaseProgress))}%</span>
             </div>
             <div className="mt-3 h-3 overflow-hidden rounded-full bg-secondary">
@@ -157,7 +151,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
               />
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Estimated time: ~{estimatedSeconds} seconds
+              Estimated time: {estimatedSeconds >= 60 ? `~${Math.round(estimatedSeconds / 60)} min` : `~${estimatedSeconds}s`}
             </p>
           </div>
         ) : null}
@@ -167,7 +161,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
       <div className="w-64 shrink-0">
         <div className="surface-card p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Video Summary</h3>
-          <SummaryRow label="Style" value={state.videoType === "remotion" ? "ScriptMotion" : "Avatar"} />
+          <SummaryRow label="Style" value={state.videoType === "remotion" ? "Text to Video" : "Avatar"} />
           <SummaryRow label="Language" value={state.language} />
           {state.videoType === "avatar" ? <SummaryRow label="Avatar" value={avatarName} /> : null}
           <SummaryRow label="Duration" value={duration} />

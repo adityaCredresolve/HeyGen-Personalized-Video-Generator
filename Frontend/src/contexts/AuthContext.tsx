@@ -1,20 +1,36 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
-  username: string;
+  fullName: string | null;
   email: string;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, username: string, email: string) => void;
+  login: (token: string, user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function parseTokenExpiry(token: string): number | null {
+  try {
+    const payloadSegment = token.split('.')[1];
+    if (!payloadSegment) {
+      return null;
+    }
+
+    const normalized = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(normalized.length + ((4 - normalized.length % 4) % 4), '=');
+    const payload = JSON.parse(window.atob(padded)) as { exp?: unknown };
+    return typeof payload.exp === 'number' ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -25,18 +41,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        const exp = parseTokenExpiry(savedToken);
+        if (exp !== null && exp * 1000 <= Date.now()) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsLoading(false);
+          return;
+        }
+
+        const parsedUser = JSON.parse(savedUser) as Partial<User> & { username?: string };
+        if (parsedUser.email) {
+          setToken(savedToken);
+          setUser({
+            email: parsedUser.email,
+            fullName: parsedUser.fullName ?? parsedUser.username ?? null,
+          });
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, username: string, email: string) => {
+  const login = (newToken: string, newUser: User) => {
     setToken(newToken);
-    const userData = { username, email };
-    setUser(userData);
+    setUser(newUser);
     localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(newUser));
   };
 
   const logout = () => {

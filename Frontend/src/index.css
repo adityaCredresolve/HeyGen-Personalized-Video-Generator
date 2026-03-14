@@ -7,47 +7,50 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 260 40% 5%;
+    --foreground: 285 60% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 260 40% 5%;
+    --card-foreground: 285 60% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 260 40% 5%;
+    --popover-foreground: 285 60% 8%;
 
-    --primary: 270 80% 65%;
+    /* #5F1284 — deep royal purple */
+    --primary: 285 77% 29%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 260 20% 96%;
-    --secondary-foreground: 260 40% 5%;
+    /* #F5E8FE — soft lavender */
+    --secondary: 286 94% 96%;
+    --secondary-foreground: 285 60% 8%;
 
-    --muted: 260 20% 96%;
-    --muted-foreground: 260 20% 45%;
+    --muted: 286 50% 95%;
+    --muted-foreground: 285 25% 45%;
 
-    --accent: 280 80% 60%;
-    --accent-foreground: 260 40% 5%;
+    /* #8D4DB8 — medium violet */
+    --accent: 280 44% 51%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 260 20% 90%;
-    --input: 260 20% 90%;
-    --ring: 270 80% 65%;
+    --border: 286 30% 88%;
+    --input: 286 30% 88%;
+    --ring: 285 77% 29%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 260 20% 45%;
-    --sidebar-primary: 270 80% 65%;
+    --sidebar-background: 286 60% 98%;
+    --sidebar-foreground: 285 25% 40%;
+    --sidebar-primary: 285 77% 29%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 20% 92%;
-    --sidebar-accent-foreground: 260 40% 5%;
-    --sidebar-border: 260 20% 90%;
-    --sidebar-ring: 270 80% 65%;
+    --sidebar-accent: 286 50% 93%;
+    --sidebar-accent-foreground: 285 60% 8%;
+    --sidebar-border: 286 30% 88%;
+    --sidebar-ring: 285 77% 29%;
 
     --surface: 0 0% 100%;
-    --surface-hover: 260 20% 98%;
-    --glow-primary: 270 80% 65%;
+    --surface-hover: 286 60% 98%;
+    --glow-primary: 285 77% 29%;
     --success: 152 70% 50%;
   }
 }
@@ -68,17 +71,18 @@
 }
 
 @layer components {
+  /* #5F1284 glow utilities */
   .glow-purple {
-    box-shadow: 0 0 20px hsl(270 80% 65% / 0.15), 0 0 40px hsl(270 80% 65% / 0.05);
+    box-shadow: 0 0 20px hsl(285 77% 29% / 0.2), 0 0 40px hsl(285 77% 29% / 0.08);
   }
 
   .glow-purple-sm {
-    box-shadow: 0 0 10px hsl(270 80% 65% / 0.1);
+    box-shadow: 0 0 12px hsl(285 77% 29% / 0.18);
   }
 
   .glow-purple-border {
-    border-color: hsl(270 80% 65% / 0.5);
-    box-shadow: 0 0 15px hsl(270 80% 65% / 0.1), inset 0 0 15px hsl(270 80% 65% / 0.03);
+    border-color: hsl(285 77% 29% / 0.5);
+    box-shadow: 0 0 15px hsl(285 77% 29% / 0.12), inset 0 0 15px hsl(285 77% 29% / 0.04);
   }
 
   .surface-card {

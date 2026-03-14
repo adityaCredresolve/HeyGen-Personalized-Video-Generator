@@ -23,9 +23,10 @@ def _normalize_placeholder_syntax(text: str) -> str:
 
 
 def build_context(lead: LeadRecord) -> dict:
+    language = getattr(lead, 'language', None) or 'Hindi'
     loan_amount = parse_money(lead.loan_amount, field_name='loan_amount') if lead.loan_amount is not None else ''
-    tos = parse_money(lead.tos, field_name='tos')
-    contact_details = lead.contact_details or ''
+    tos = parse_money(lead.tos, field_name='tos') or ('बकाया राशि' if language == 'Hindi' else 'outstanding amount')
+    contact_details = lead.contact_details or ('बैंक हेल्पलाइन' if language == 'Hindi' else 'the bank helpline')
     product_type = lead.product_type or 'loan'
     return {
         'customer_name': lead.customer_name,

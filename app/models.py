@@ -1,18 +1,17 @@
 from pathlib import Path
 from typing import Literal
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator, EmailStr
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, EmailStr
 
 
 class User(BaseModel):
-    username: str
+    username: str | None = None
     email: EmailStr
     full_name: str | None = None
     disabled: bool | None = None
 
 
 class UserCreate(BaseModel):
-    username: str
     email: EmailStr
     password: str
     full_name: str | None = None
@@ -25,6 +24,8 @@ class UserInDB(User):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    email: EmailStr
+    full_name: str | None = None
 
 
 class TokenData(BaseModel):
@@ -68,15 +69,16 @@ class LeadRecord(BaseModel):
 
 
 class DirectVideoRequest(LeadRecord):
+    tos: str | float | int | None = None
     avatar_id: str | None = None
     voice_id: str | None = None
     language: str | None = None
-    template_name: str = 'legal_notice_safe_hi.txt'
+    template_name: str = 'legal_notice_raw_hi.txt'
     script_text: str | None = None
     background_color: str | None = None
     include_captions: bool = False
     folder: str | None = None
-    title_prefix: str = 'Loan Recall'
+    title_prefix: str = 'Legal Notice'
     video_width: int | None = None
     video_height: int | None = None
 
@@ -100,6 +102,24 @@ class TemplateVideoRequest(LeadRecord):
     template_id: str | None = None
     payload_path: str | None = None
     folder: str | None = None
+
+
+class RemotionVideoRequest(DirectVideoRequest):
+    tos: str | float | int
+    loan_amount: str | float | int
+    contact_details: str
+    product_type: str
+    title_prefix: str = 'Loan Recall'
+
+    @field_validator('tos', 'loan_amount', 'contact_details', 'product_type')
+    @classmethod
+    def validate_required_remotion_fields(cls, value: str | float | int, info: ValidationInfo) -> str | float | int:
+        if isinstance(value, str):
+            cleaned = value.strip()
+            if not cleaned:
+                raise ValueError(f'{info.field_name} is required')
+            return cleaned
+        return value
 
 
 class VideoJobResult(BaseModel):

@@ -55,6 +55,29 @@ class RemotionService:
         self.remotion_path = remotion_path or settings.remotion_path
         self.output_dir = settings.output_dir / 'remotion'
 
+    def _local_remotion_binary(self) -> Path:
+        return self.remotion_path / 'node_modules' / '.bin' / 'remotion'
+
+    def _resolve_remotion_command(self) -> list[str]:
+        local_binary = self._local_remotion_binary()
+        if local_binary.exists():
+            return [str(local_binary)]
+        return [settings.remotion_npx_binary, 'remotion']
+
+    def _resolve_browser_executable(self) -> str | None:
+        configured = settings.remotion_browser_executable
+        if configured:
+            return configured
+
+        candidates = [
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+        ]
+        for candidate in candidates:
+            if Path(candidate).exists():
+                return candidate
+        return None
+
     def ensure_project_available(self) -> None:
         required_paths = [
             self.remotion_path,
@@ -68,6 +91,10 @@ class RemotionService:
             raise RuntimeError(
                 f"Remotion project is incomplete at '{self.remotion_path}'. Missing: {missing_display}."
             )
+        if not self._local_remotion_binary().exists():
+            raise RuntimeError(
+                f"Remotion dependencies are not installed in '{self.remotion_path}'. Run 'npm install' inside the Remotion directory first."
+            )
 
     @classmethod
     def normalize_placeholder_syntax(cls, text: str) -> str:
@@ -80,7 +107,7 @@ class RemotionService:
         loan_amount = request.loan_amount or 'amount'
         tos = request.tos or 'outstanding'
         lan = request.lan or 'N/A'
-        contact_details = request.contact_details or '1800-XXX-XXXX'
+        contact_details = request.contact_details or '1800-555-999'
         product_type = request.product_type or 'loan'
         return {
             'customer_name': customer_name,
@@ -241,7 +268,7 @@ class RemotionService:
         client_name = self._normalize_text(request.client_name, 'Bank')
         lan = self._normalize_text(request.lan, 'N/A')
         language = request.language or 'Hindi'
-        contact_details = self._normalize_text(request.contact_details, '1800-XXX-XXXX')
+        contact_details = self._normalize_text(request.contact_details, '1800-555-999')
         product_content = self._product_content(self._normalize_text(request.product_type, 'loan'), language=language)
         outstanding_value = display_amounts['primary']['value']
         loan_value = display_amounts['secondary']['value']
@@ -371,7 +398,7 @@ class RemotionService:
         lan = self._normalize_text(request.lan, 'N/A')
         client_name = self._normalize_text(request.client_name, 'Bank')
         language = self._normalize_text(request.language, 'Hindi')
-        contact_details = self._normalize_text(request.contact_details, '1800-XXX-XXXX')
+        contact_details = self._normalize_text(request.contact_details, '1800-555-999')
         product_type = self._normalize_text(request.product_type, 'loan')
         urgency_level = self.determine_urgency_level(request.tos)
         display_amounts = {
@@ -504,6 +531,8 @@ class RemotionService:
     async def render_video(self, request: DirectVideoRequest, job_id: str, script_text: str) -> Path:
         self.ensure_project_available()
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        command_prefix = self._resolve_remotion_command()
+        browser_executable = self._resolve_browser_executable()
         leads_path = self.remotion_path / 'leads.json'
         leads: list[dict[str, Any]] = []
         if leads_path.exists():
@@ -522,26 +551,24 @@ class RemotionService:
         )
 
         output_path = self.output_dir / f'{job_id}.mp4'
-        primary_command = [
-            settings.remotion_npx_binary,
-            'remotion',
+        base_args = [
             'render',
             'src/index.jsx',
+        ]
+        shared_flags = ['--overwrite']
+        if browser_executable:
+            shared_flags.extend(['--browser-executable', browser_executable])
+
+        primary_command = command_prefix + base_args + [
             job_id.replace('_', '-'),
             str(output_path),
-            '--overwrite',
-        ]
-        fallback_command = [
-            settings.remotion_npx_binary,
-            'remotion',
-            'render',
-            'src/index.jsx',
+        ] + shared_flags
+        fallback_command = command_prefix + base_args + [
             'main',
             str(output_path),
             '--props',
             json.dumps({'leadId': job_id}),
-            '--overwrite',
-        ]
+        ] + shared_flags
 
         for command in (primary_command, fallback_command):
             process = await asyncio.create_subprocess_exec(
@@ -550,10 +577,11 @@ class RemotionService:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            _stdout, stderr = await process.communicate()
+            stdout, stderr = await process.communicate()
             if process.returncode == 0:
                 return output_path
-            last_error = stderr.decode().strip()
+            error_parts = [part.strip() for part in (stderr.decode(), stdout.decode()) if part.strip()]
+            last_error = '\n'.join(error_parts)
 
         raise RuntimeError(f'Remotion render failed: {last_error}')
 

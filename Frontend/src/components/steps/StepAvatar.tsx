@@ -8,7 +8,7 @@ interface StepAvatarProps {
   errorMessage: string | null;
   selectedId: string;
   filter: string;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, name: string) => void;
   onFilterChange: (f: string) => void;
 }
 
@@ -76,7 +76,7 @@ export function StepAvatar({
           return (
             <button
               key={avatar.id}
-              onClick={() => onSelect(avatar.id)}
+              onClick={() => onSelect(avatar.id, avatar.name)}
               className={`relative group p-6 rounded-xl border text-center transition-all duration-200 hover:scale-[1.02] ${
                 isSelected
                   ? "glow-purple-border border-primary bg-primary/5"
@@ -118,7 +118,7 @@ export function StepAvatar({
         <label className="block text-sm font-medium text-foreground">Manual Avatar ID</label>
         <Input
           value={selectedId}
-          onChange={(event) => onSelect(event.target.value)}
+          onChange={(event) => onSelect(event.target.value, "")}
           placeholder="Paste an avatar_id"
           className="bg-secondary border-border"
         />

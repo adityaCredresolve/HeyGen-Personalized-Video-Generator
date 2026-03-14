@@ -1,8 +1,9 @@
+export const DEFAULT_AVATAR_SCRIPT = `नमस्ते {{ customer_name }}। मैं एडवोकेट अदिति मेहरा बोल रही हूँ, आपके {{ client_name }} के साथ लोन अकाउंट नंबर {{ lan }}{% if loan_amt %}, लोन राशि {{ loan_amt }}{% endif %} के संबंध में। आपने कई ईएमआई भुगतान समय पर नहीं किए हैं, और आपकी कुल बकाया राशि {{ tos }} है। इस कारण, बैंक ने आपके खिलाफ लोन रिकॉल नोटिस जारी किया है, जिसका अर्थ है कि पूरी बकाया राशि तुरंत चुकानी होगी। यदि नोटिस को नज़रअंदाज़ किया गया, तो बैंक आर्बिट्रेशन शुरू कर सकता है, और पूरी लोन राशि, ब्याज व कानूनी खर्च वसूल सकता है। बैंक की मंशा कानूनी कार्रवाई से बचने की है। यदि आप पूरी राशि नहीं चुका सकते, तो जितना संभव हो उतना भुगतान करें या तुरंत बैंक से संपर्क करें। अभी प्रतिक्रिया देने से आप आर्बिट्रेशन और आगे की कानूनी समस्याओं से बच सकते हैं।`;
+
 export const AVATAR_TEMPLATES: Record<string, string> = {
   English:
     "Hello {{ customer_name }}. This is an important account notice from {{ client_name }} regarding {{ product_type }} account {{ lan }}. Our records show an outstanding balance of {{ tos }}. Please contact us at {{ contact_details }} immediately.",
-  Hindi:
-    "नमस्ते {{ customer_name }}। मैं {{ client_name }} की ओर से बोल रही हूँ। यह आपके {{ product_type }} खाते {{ lan }} के संबंध में एक महत्वपूर्ण सूचना है। हमारी जानकारी के अनुसार आपकी कुल बकाया राशि {{ tos }} है। कृपया तुरंत {{ contact_details }} पर संपर्क करें।",
+  Hindi: DEFAULT_AVATAR_SCRIPT,
   Marathi:
     "नमस्कार {{ customer_name }}. मी {{ client_name }} कडून बोलत आहे. हे तुमच्या {{ product_type }} खाते {{ lan }} संदर्भातील महत्त्वाचे सूचनापत्र आहे. आमच्या नोंदीनुसार तुमची एकूण थकबाकी {{ tos }} आहे. कृपया त्वरित {{ contact_details }} वर संपर्क साधा.",
   Tamil:

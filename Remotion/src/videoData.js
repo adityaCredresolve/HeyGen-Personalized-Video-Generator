@@ -24,7 +24,7 @@ const fallbackLead = {
   language: 'Hindi',
   loan_amount: '₹1,20,000',
   tos: '₹38,450',
-  contact_details: '1800-123-456',
+  contact_details: '1800-555-999',
   product_type: 'loan',
   title_prefix: 'Account Notice',
   script_text:
@@ -144,7 +144,7 @@ const buildScenePayload = (lead, displayAmounts, urgencyLevel) => {
   const customerName = safeString(lead.customer_name, 'Customer');
   const clientName = safeString(lead.client_name, 'Bank');
   const lan = safeString(lead.lan, 'N/A');
-  const contactDetails = safeString(lead.contact_details, '1800-XXX-XXXX');
+  const contactDetails = safeString(lead.contact_details, '1800-555-999');
   const productContent = getProductContent(lead.product_type);
   const outstandingValue = displayAmounts.primary.value;
   const loanValue = displayAmounts.secondary.value;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { HeaderBar } from "@/components/HeaderBar";
 import { StepLayout } from "@/components/StepLayout";
@@ -12,7 +12,7 @@ import { StepShare } from "@/components/steps/StepShare";
 import { StepSubtitle } from "@/components/steps/StepSubtitle";
 import { StepTranscript } from "@/components/steps/StepTranscript";
 import {
-  AVATAR_TEMPLATES,
+  DEFAULT_AVATAR_SCRIPT,
   REMOTION_TEMPLATES,
 } from "@/lib/templates";
 import {
@@ -77,11 +77,18 @@ const RESET_GENERATION_STATE = {
   generationError: "",
 };
 
+function isConnectivityError(error: unknown): boolean {
+  return error instanceof Error && /could not reach the server|failed to fetch|networkerror|load failed/i.test(error.message);
+}
+
 const Index = () => {
   const { state, update, nextStep, prevStep, goToStep, reset, canProceed } = useWizardStore();
+  const navigate = useNavigate();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const stylingRequestedRef = useRef(false);
+  const draftSyncWarningShownRef = useRef(false);
+  const statusPollingWarningShownRef = useRef(false);
   const step = state.currentStep;
   const meta = getStepMeta(step, state.videoType);
   const activeTranscript = state.videoType === "remotion" ? state.remotionTranscript : state.transcript;
@@ -109,6 +116,7 @@ const Index = () => {
     mutationFn: (payload: DirectVideoPayload) => generateDirectVideo(payload, false),
     onMutate: () => {
       stylingRequestedRef.current = false;
+      statusPollingWarningShownRef.current = false;
       update({
         generationStatus: "submitting",
         generationError: "",
@@ -118,6 +126,7 @@ const Index = () => {
       });
     },
     onSuccess: (result) => {
+      statusPollingWarningShownRef.current = false;
       update({
         generatedVideo: result,
         generationStatus: "submitting",
@@ -141,6 +150,7 @@ const Index = () => {
     mutationFn: (payload: DirectVideoPayload) => generateRemotionVideo(payload),
     onMutate: () => {
       stylingRequestedRef.current = false;
+      statusPollingWarningShownRef.current = false;
       update({
         generationStatus: "submitting",
         generationError: "",
@@ -150,20 +160,21 @@ const Index = () => {
       });
     },
     onSuccess: (result) => {
+      statusPollingWarningShownRef.current = false;
       update({
         generatedVideo: result,
         generationStatus: "completed",
         generationError: "",
       });
-      toast.success("ScriptMotion video generated successfully.");
+      toast.success("Text to Video render generated successfully.");
       goToStep(5);
     },
     onError: (error) => {
       update({
         generationStatus: "failed",
-        generationError: error instanceof Error ? error.message : "Unexpected error while generating the ScriptMotion video.",
+        generationError: error instanceof Error ? error.message : "Unexpected error while generating the text video.",
       });
-      toast.error(error instanceof Error ? error.message : "Unexpected error while generating the ScriptMotion video.");
+      toast.error(error instanceof Error ? error.message : "Unexpected error while generating the text video.");
     },
   });
 
@@ -219,7 +230,15 @@ const Index = () => {
   const saveDraftMutation = useMutation({
     mutationFn: (draft: any) => saveDraft(draft),
     onSuccess: () => {
-      // Draft saved
+      draftSyncWarningShownRef.current = false;
+    },
+    onError: () => {
+      if (draftSyncWarningShownRef.current) {
+        return;
+      }
+
+      draftSyncWarningShownRef.current = true;
+      toast.info("Cloud draft sync is unavailable right now. Your current draft is still saved locally in this browser.");
     },
   });
 
@@ -244,6 +263,7 @@ const Index = () => {
 
     const nextStatus = statusQuery.data.status.toLowerCase();
     if (["completed", "done", "success"].includes(nextStatus)) {
+      statusPollingWarningShownRef.current = false;
       update({ generatedVideo: statusQuery.data, generationError: "" });
       if (state.videoType === "avatar" && (state.includeCaptions || logoFile) && !stylingRequestedRef.current) {
         stylingRequestedRef.current = true;
@@ -279,6 +299,14 @@ const Index = () => {
       return;
     }
 
+    if (isConnectivityError(statusQuery.error)) {
+      if (!statusPollingWarningShownRef.current) {
+        statusPollingWarningShownRef.current = true;
+        toast.info("Connection lost while checking video status. We'll keep your draft and resume polling when the server is reachable again.");
+      }
+      return;
+    }
+
     update({
       generationStatus: "failed",
       generationError: statusQuery.error instanceof Error ? statusQuery.error.message : "Unexpected error while checking video status.",
@@ -308,7 +336,7 @@ const Index = () => {
       outputLanguage: language,
       videoType: requestedMode,
       avatarId: requestedFreshDraft || requestedMode === "remotion" ? "" : state.avatarId,
-      transcript: AVATAR_TEMPLATES[language] ?? AVATAR_TEMPLATES.Hindi,
+      transcript: DEFAULT_AVATAR_SCRIPT,
       remotionTranscript: REMOTION_TEMPLATES[language] ?? REMOTION_TEMPLATES.Hindi,
       ...RESET_GENERATION_STATE,
     });
@@ -360,7 +388,13 @@ const Index = () => {
       !state.customerName.trim() ||
       !state.lan.trim() ||
       !state.clientName.trim() ||
-      !state.tos.trim() ||
+      (state.videoType === "remotion" &&
+        (
+          !state.tos.trim() ||
+          !state.loanAmount.trim() ||
+          !state.contactDetails.trim() ||
+          !state.productType.trim()
+        )) ||
       !activeTranscript.trim()
     ) {
       toast.error("Complete the lead details and transcript before generating the video.");
@@ -373,17 +407,17 @@ const Index = () => {
       customer_name: state.customerName.trim(),
       lan: state.lan.trim(),
       client_name: state.clientName.trim(),
-      tos: state.tos.trim(),
+      tos: state.tos.trim() || undefined,
       loan_amount: state.loanAmount.trim() || undefined,
       contact_details: state.contactDetails.trim() || undefined,
       product_type: state.productType.trim() || undefined,
       avatar_id: state.videoType === "avatar" ? state.avatarId.trim() || undefined : undefined,
-      template_name: state.templateName,
+      template_name: state.videoType === "avatar" ? state.templateName : undefined,
       language: state.language,
       script_text: activeTranscript.trim() || undefined,
       background_color: state.backgroundColor,
       include_captions: state.includeCaptions,
-      title_prefix: state.titlePrefix.trim() || undefined,
+      title_prefix: state.videoType === "avatar" ? state.titlePrefix.trim() || undefined : undefined,
       video_width: dimensions.width,
       video_height: dimensions.height,
     };
@@ -432,8 +466,8 @@ const Index = () => {
                 ...(state.videoType === "remotion" && REMOTION_TEMPLATES[lang]
                   ? { remotionTranscript: REMOTION_TEMPLATES[lang] }
                   : {}),
-                ...(state.videoType === "avatar" && AVATAR_TEMPLATES[lang]
-                  ? { transcript: AVATAR_TEMPLATES[lang] }
+                ...(state.videoType === "avatar"
+                  ? { transcript: DEFAULT_AVATAR_SCRIPT }
                   : {}),
                 ...RESET_GENERATION_STATE,
               };
@@ -446,8 +480,8 @@ const Index = () => {
                 ...(type === "remotion" && REMOTION_TEMPLATES[state.language]
                   ? { remotionTranscript: REMOTION_TEMPLATES[state.language] }
                   : {}),
-                ...(type === "avatar" && AVATAR_TEMPLATES[state.language]
-                  ? { transcript: AVATAR_TEMPLATES[state.language] }
+                ...(type === "avatar"
+                  ? { transcript: DEFAULT_AVATAR_SCRIPT }
                   : {}),
                 ...RESET_GENERATION_STATE,
               };
@@ -463,7 +497,7 @@ const Index = () => {
             errorMessage={avatarsQuery.error instanceof Error ? avatarsQuery.error.message : null}
             selectedId={state.avatarId}
             filter={state.avatarFilter}
-            onSelect={(id) => update({ avatarId: id, ...RESET_GENERATION_STATE })}
+            onSelect={(id, name) => update({ avatarId: id, avatarName: name || id, ...RESET_GENERATION_STATE })}
             onFilterChange={(filter) => update({ avatarFilter: filter })}
           />
         );
@@ -507,6 +541,7 @@ const Index = () => {
               : "Video creation under progress..."
           }
           onCancel={step === 4 && isProcessing ? handleCancel : undefined}
+          onFinish={() => navigate("/")}
         >
           {renderStep()}
         </StepLayout>

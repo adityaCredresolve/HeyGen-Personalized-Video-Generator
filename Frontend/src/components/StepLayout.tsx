@@ -16,6 +16,7 @@ interface StepLayoutProps {
   isLast?: boolean;
   lastAction?: () => void;
   lastLabel?: string;
+  onFinish?: () => void;
   primaryActionBusy?: boolean;
   primaryBusyLabel?: string;
   onCancel?: () => void;
@@ -33,6 +34,7 @@ export function StepLayout({
   isLast = false,
   lastAction,
   lastLabel,
+  onFinish,
   primaryActionBusy = false,
   primaryBusyLabel = "Working...",
   onCancel,
@@ -85,7 +87,7 @@ export function StepLayout({
           {isLast ? (
             <>
               <Button
-                onClick={lastAction || onNext}
+                onClick={onFinish || lastAction || onNext}
                 disabled={primaryActionBusy}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold flex-1"
               >

@@ -134,9 +134,6 @@ const BrandHud = ({lead, accentColor, activeSceneLabel}) => (
       <div style={{fontSize: 20, fontWeight: 700, marginTop: 6, color: '#f8fafc'}}>
         {safeString(lead.client_name)}
       </div>
-      <div style={{fontSize: 11, letterSpacing: 2.4, textTransform: 'uppercase', marginTop: 6, color: '#64748b'}}>
-        ScriptMotion
-      </div>
     </div>
 
     <div

@@ -34,15 +34,27 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
 
   return (
     <header className="h-14 flex items-center justify-between px-6 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-      <motion.h1
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, type: "spring" }}
         onClick={() => navigate("/")}
-        className="font-display text-xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity select-none"
       >
-        Vishvarupa
-      </motion.h1>
+        {/* Product wordmark */}
+        <span className="font-display text-[1.15rem] font-bold tracking-tight bg-gradient-to-r from-[#5F1284] to-[#8D4DB8] bg-clip-text text-transparent">
+          Vishvarupa
+        </span>
+        {/* "by" label */}
+        <span className="hidden sm:inline text-[11px] font-medium text-muted-foreground/50 tracking-wide">by</span>
+        {/* CredResolve logo – transparent PNG sized to match cap-height */}
+        <img
+          src="/credresolve_logo.png"
+          alt="CredResolve"
+          className="hidden sm:block h-8 w-auto object-contain object-left"
+          draggable={false}
+        />
+      </motion.div>
 
       <div className="flex items-center gap-3">
         <Button
@@ -81,14 +93,14 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
             <DropdownMenuItem onClick={() => launchCreate("avatar")} className="items-start gap-3 py-3">
               <Clapperboard className="mt-0.5 h-4 w-4 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Avatar Video flow</p>
+                <p className="font-medium text-foreground">Avatar Video</p>
                 <p className="text-xs text-muted-foreground">Use the talking-avatar pipeline to generate personalized videos.</p>
               </div>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => launchCreate("remotion")} className="items-start gap-3 py-3">
               <LayoutTemplate className="mt-0.5 h-4 w-4 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Text to video flow</p>
+                <p className="font-medium text-foreground">Text to Video</p>
                 <p className="text-xs text-muted-foreground">Create cinematic videos from scripts using our Text to Video engine.</p>
               </div>
             </DropdownMenuItem>
@@ -104,7 +116,7 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.username || 'User'}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.fullName || user?.email || 'User'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />

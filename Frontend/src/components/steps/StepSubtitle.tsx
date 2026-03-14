@@ -110,7 +110,7 @@ export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProp
           {state.includeCaptions ? (
             <div className={`relative z-10 flex h-full w-full justify-center ${getPreviewPosition(state.subtitlePosition)}`}>
               <p className={`text-sm font-semibold px-4 py-2 rounded-lg ${subtitlePreviewClass}`}>
-                आपके भुगतान पर ध्यान देना आवश्यक है।
+                Your payment requires immediate attention.
               </p>
             </div>
           ) : (
@@ -123,7 +123,7 @@ export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProp
         <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-foreground">Enable Captions</p>
-            <p className="text-xs text-muted-foreground">Maps to the backend `include_captions` flag.</p>
+            <p className="text-xs text-muted-foreground">Burn auto-generated subtitles into your video.</p>
           </div>
           <Switch
             checked={state.includeCaptions}

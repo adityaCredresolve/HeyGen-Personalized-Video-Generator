@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import type { VideoJobResult } from "@/lib/api";
-import { AVATAR_TEMPLATES, REMOTION_TEMPLATES } from "@/lib/templates";
+import { DEFAULT_AVATAR_SCRIPT, REMOTION_TEMPLATES } from "@/lib/templates";
+
+export const WIZARD_STORAGE_KEY = "avatar-wizard-storage";
 
 export interface WizardState {
   currentStep: number;
@@ -11,6 +13,7 @@ export interface WizardState {
   temperature: number;
   systemPrompt: string;
   avatarId: string;
+  avatarName: string;
   avatarFilter: string;
   transcript: string;
   remotionTranscript: string;
@@ -51,8 +54,9 @@ const defaultState: WizardState = {
   temperature: 50,
   systemPrompt: "",
   avatarId: "",
+  avatarName: "",
   avatarFilter: "All",
-  transcript: AVATAR_TEMPLATES.Hindi,
+  transcript: DEFAULT_AVATAR_SCRIPT,
   remotionTranscript: REMOTION_TEMPLATES.Hindi,
   subtitleColor: "White",
   subtitlePosition: "Bottom",
@@ -67,11 +71,11 @@ const defaultState: WizardState = {
   clientName: "",
   tos: "",
   loanAmount: "",
-  contactDetails: "1800-XXX-XXXX",
-  templateName: "legal_notice_safe_hi.txt",
+  contactDetails: "1800-555-999",
+  templateName: "legal_notice_raw_hi.txt",
   backgroundColor: "#F4F4F4",
   includeCaptions: true,
-  titlePrefix: "Loan Recall",
+  titlePrefix: "Legal Notice",
   productType: "loan",
   videoType: "avatar",
   generatedVideo: null,
@@ -81,6 +85,44 @@ const defaultState: WizardState = {
   generationStatus: "idle",
   generationError: "",
 };
+
+function restoreSavedState(savedState: Partial<WizardState>): WizardState {
+  const restored = {
+    ...defaultState,
+    ...savedState,
+    logoFileName: "",
+  };
+
+  if (restored.generationStatus === "styling") {
+    if (restored.generatedVideo?.video_url) {
+      restored.generationStatus = "completed";
+      restored.styledVideoUrl = "";
+      restored.styledVideoPath = "";
+      restored.subtitleSource = "disabled";
+      restored.generationError = "";
+    } else if (restored.generatedVideo?.video_id) {
+      restored.generationStatus = "submitting";
+      restored.styledVideoUrl = "";
+      restored.styledVideoPath = "";
+      restored.subtitleSource = "disabled";
+      restored.generationError = "";
+    } else {
+      restored.generationStatus = "failed";
+      restored.generationError =
+        restored.generationError ||
+        "The previous styling run was interrupted. Your draft is still saved locally.";
+    }
+  }
+
+  if (restored.generationStatus === "submitting" && !restored.generatedVideo?.video_id) {
+    restored.generationStatus = "failed";
+    restored.generationError =
+      restored.generationError ||
+      "The previous generation request was interrupted before the video ID was returned. Your draft is still saved locally.";
+  }
+
+  return restored;
+}
 
 export const STEPS = [
   { label: "Language", key: "language" },
@@ -93,17 +135,11 @@ export const STEPS = [
 
 export function useWizardStore() {
   const [state, setState] = useState<WizardState>(() => {
-    const saved = localStorage.getItem("avatar-wizard-storage");
+    const saved = localStorage.getItem(WIZARD_STORAGE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        // File objects are not persisted across refreshes, so clear the stale file name.
-        parsed.logoFileName = "";
-        // Reset generation state if page was refreshed during an in-flight job.
-        if (parsed.generationStatus === "submitting" || parsed.generationStatus === "styling") {
-          parsed.generationStatus = "idle";
-        }
-        return { ...defaultState, ...parsed };
+        const parsed = JSON.parse(saved) as Partial<WizardState>;
+        return restoreSavedState(parsed);
       } catch (e) {
         console.error("Failed to parse wizard state", e);
       }
@@ -112,7 +148,7 @@ export function useWizardStore() {
   });
 
   useEffect(() => {
-    localStorage.setItem("avatar-wizard-storage", JSON.stringify(state));
+    localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
   const update = useCallback((partial: Partial<WizardState>) => {
@@ -159,7 +195,13 @@ export function useWizardStore() {
           s.customerName.trim().length > 0 &&
           s.lan.trim().length > 0 &&
           s.clientName.trim().length > 0 &&
-          s.tos.trim().length > 0
+          (s.videoType === "avatar" ||
+            (
+              s.tos.trim().length > 0 &&
+              s.loanAmount.trim().length > 0 &&
+              s.contactDetails.trim().length > 0 &&
+              s.productType.trim().length > 0
+            ))
         );
       case 4:
         return s.generationStatus === "completed";

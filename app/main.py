@@ -1,14 +1,16 @@
 from typing import Literal
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 
 from app.config import settings
-from app.models import DirectVideoRequest, StyledVideoResult, TemplateVideoRequest, VideoJobResult, UserCreate, Token, UserInDB, VideoRecord
+from app.models import DirectVideoRequest, RemotionVideoRequest, StyledVideoResult, TemplateVideoRequest, VideoJobResult, UserCreate, Token, UserInDB, VideoRecord
 from app.services.heygen_client import HeyGenClient
 from app.services.media_styling_service import MediaStylingService, StyleRequest
 from app.services.remotion_service import RemotionService
@@ -43,6 +45,59 @@ service = VideoService()
 client = HeyGenClient()
 styling_service = MediaStylingService(client=client)
 remotion_service = RemotionService()
+
+
+def _normalize_video_status(status_value: str | None) -> str:
+    normalized = (status_value or "processing").strip().lower()
+    if normalized in {"completed", "done", "success", "styled"}:
+        return "completed"
+    if normalized in {"failed", "error"}:
+        return "failed"
+    return "processing"
+
+
+def _to_mongo_safe(value: object) -> object:
+    if isinstance(value, BaseModel):
+        return {
+            key: _to_mongo_safe(item)
+            for key, item in value.model_dump(mode="python").items()
+        }
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {
+            key: _to_mongo_safe(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple, set)):
+        return [_to_mongo_safe(item) for item in value]
+    return value
+
+
+async def _persist_video_job_result(current_user: str, result: VideoJobResult) -> None:
+    update_fields: dict[str, object] = {
+        "status": _normalize_video_status(result.status),
+        "job_data": _to_mongo_safe(result),
+    }
+    if result.title:
+        update_fields["title"] = result.title
+    if result.video_url:
+        update_fields["video_url"] = result.video_url
+
+    await videos_collection.update_one(
+        {"video_id": result.video_id, "user_email": current_user},
+        {"$set": update_fields},
+    )
+
+
+async def _mark_video_failed(current_user: str, video_id: str, detail: str) -> None:
+    await videos_collection.update_one(
+        {"video_id": video_id, "user_email": current_user},
+        {"$set": {
+            "status": "failed",
+            "job_data": {"detail": detail},
+        }},
+    )
 
 
 @app.exception_handler(RuntimeError)
@@ -84,36 +139,58 @@ def get_template_details(template_id: str, version: str = 'v3', current_user: st
 
 @app.post("/auth/signup", response_model=dict)
 async def signup(user: UserCreate):
-    print(f"DEBUG: Signup request received for user: {user.email}")
-    existing_user = await users_collection.find_one({"email": user.email})
+    normalized_email = str(user.email).strip().lower()
+    display_name = (user.full_name or normalized_email.split("@", 1)[0]).strip()
+
+    print(f"DEBUG: Signup request received for user: {normalized_email}")
+    existing_user = await users_collection.find_one({"email": normalized_email})
     if existing_user:
-        print(f"DEBUG: User {user.email} already exists")
+        print(f"DEBUG: User {normalized_email} already exists")
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user.password)
-    user_dict = user.dict()
+    user_dict = user.model_dump()
+    user_dict["email"] = normalized_email
+    user_dict["full_name"] = user.full_name.strip() if user.full_name else None
+    user_dict["username"] = display_name
     user_dict["hashed_password"] = hashed_password
     del user_dict["password"]
     
     await users_collection.insert_one(user_dict)
-    print(f"DEBUG: User {user.email} successfully registered")
+    print(f"DEBUG: User {normalized_email} successfully registered")
     return {"message": "User created successfully"}
 
 @app.post("/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    print(f"DEBUG: Login request received for user: {form_data.username}")
-    user = await users_collection.find_one({"username": form_data.username}) # Using username field for login
+    login_identifier = form_data.username.strip()
+    normalized_identifier = login_identifier.lower()
+
+    print(f"DEBUG: Login request received for account: {login_identifier}")
+    user = await users_collection.find_one(
+        {
+            "$or": [
+                {"email": normalized_identifier},
+                {"email": login_identifier},
+                {"username": login_identifier},
+            ]
+        }
+    )
     if not user or not verify_password(form_data.password, user["hashed_password"]):
-        print(f"DEBUG: Login failed for user: {form_data.username}")
+        print(f"DEBUG: Login failed for account: {login_identifier}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    print(f"DEBUG: Login successful for user: {form_data.username}")
+    print(f"DEBUG: Login successful for account: {login_identifier}")
     access_token = create_access_token(data={"sub": user["email"]})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "email": user["email"],
+        "full_name": user.get("full_name"),
+    }
 
 
 # --- Video Generation Endpoints ---
@@ -129,16 +206,22 @@ async def generate_direct(request: DirectVideoRequest, wait: bool = True, curren
         status="completed" if wait else "processing",
         title=f"{request.title_prefix} - {request.customer_name}",
         request_mode="direct",
-        job_data=result if isinstance(result, dict) else result.dict()
+        job_data=_to_mongo_safe(result)
     )
-    await videos_collection.insert_one(video_record.dict())
+    await videos_collection.insert_one(_to_mongo_safe(video_record))
     
     return result
 
 
 @app.get('/videos/{video_id}/status')
-def get_video_status(video_id: str, request_mode: Literal['direct', 'template'] = 'direct'):
-    return service.get_video_status_result(video_id, request_mode=request_mode)
+async def get_video_status(
+    video_id: str,
+    request_mode: Literal['direct', 'template'] = 'direct',
+    current_user: str = Depends(get_current_user),
+):
+    result = service.get_video_status_result(video_id, request_mode=request_mode)
+    await _persist_video_job_result(current_user, result)
+    return result
 
 
 @app.post('/videos/{video_id}/stylize', response_model=StyledVideoResult)
@@ -192,7 +275,7 @@ async def stylize_video(
         {"$set": {
             "status": "styled",
             "video_url": result.final_video_url,
-            "job_data": result.dict()
+            "job_data": _to_mongo_safe(result)
         }}
     )
     print(f"DEBUG: Stylize completed and updated in DB for video {video_id}")
@@ -211,15 +294,15 @@ async def generate_template(request: TemplateVideoRequest, wait: bool = True, cu
         status="completed" if wait else "processing",
         title=f"Template Video - {request.customer_name}",
         request_mode="template",
-        job_data=result if isinstance(result, dict) else result.dict()
+        job_data=_to_mongo_safe(result)
     )
-    await videos_collection.insert_one(video_record.dict())
+    await videos_collection.insert_one(_to_mongo_safe(video_record))
     print(f"DEBUG: Template generation saved to DB")
     return result
 
 
 @app.post('/generate/remotion', response_model=VideoJobResult)
-async def generate_remotion(payload: DirectVideoRequest, request: Request, current_user: str = Depends(get_current_user)):
+async def generate_remotion(payload: RemotionVideoRequest, request: Request, current_user: str = Depends(get_current_user)):
     result = await remotion_service.generate_video(payload)
     relative_video_path = result['video_path'].relative_to(settings.output_dir).as_posix()
     
@@ -248,9 +331,9 @@ async def generate_remotion(payload: DirectVideoRequest, request: Request, curre
         title=job_result.title,
         video_url=job_result.video_url,
         request_mode="remotion",
-        job_data=job_result.dict()
+        job_data=_to_mongo_safe(job_result)
     )
-    await videos_collection.insert_one(video_record.dict())
+    await videos_collection.insert_one(_to_mongo_safe(video_record))
     
     return job_result
 
@@ -259,6 +342,30 @@ async def get_my_videos(current_user: str = Depends(get_current_user)):
     print(f"DEBUG: Fetching videos for {current_user}")
     cursor = videos_collection.find({"user_email": current_user}).sort("created_at", -1)
     videos = await cursor.to_list(length=100)
+
+    for video in videos:
+        if video.get("status") != "processing" or video.get("request_mode") not in {"direct", "template"}:
+            continue
+
+        try:
+            refreshed = service.get_video_status_result(
+                str(video["video_id"]),
+                request_mode=str(video.get("request_mode") or "direct"),
+            )
+        except RuntimeError as exc:
+            detail = str(exc)
+            if "Video generation failed:" in detail:
+                await _mark_video_failed(current_user, str(video["video_id"]), detail)
+                video["status"] = "failed"
+                video["job_data"] = {"detail": detail}
+            continue
+
+        await _persist_video_job_result(current_user, refreshed)
+        video["status"] = _normalize_video_status(refreshed.status)
+        video["title"] = refreshed.title or video.get("title")
+        video["video_url"] = refreshed.video_url or video.get("video_url")
+        video["job_data"] = _to_mongo_safe(refreshed)
+
     for video in videos:
         video["_id"] = str(video["_id"])
     return videos
@@ -266,15 +373,20 @@ async def get_my_videos(current_user: str = Depends(get_current_user)):
 @app.post('/drafts/save')
 async def save_draft(draft: dict, current_user: str = Depends(get_current_user)):
     print(f"DEBUG: Saving draft for {current_user}")
-    draft_record = {
-        "user_email": current_user,
-        "content": draft,
-        "updated_at": datetime.utcnow(),
-        "created_at": datetime.utcnow()
-    }
-    # Update existing draft or insert new one? Let's insert for now or update if ID provided
-    result = await drafts_collection.insert_one(draft_record)
-    return {"status": "success", "draft_id": str(result.inserted_id)}
+    now = datetime.utcnow()
+    result = await drafts_collection.update_one(
+        {"user_email": current_user},
+        {"$set": {
+            "content": draft,
+            "updated_at": now,
+        }, "$setOnInsert": {
+            "created_at": now,
+        }},
+        upsert=True,
+    )
+    draft_doc = await drafts_collection.find_one({"user_email": current_user}, sort=[("updated_at", -1)])
+    draft_id = str(draft_doc["_id"]) if draft_doc else str(result.upserted_id or "latest")
+    return {"status": "success", "draft_id": draft_id}
 
 @app.get('/drafts')
 async def get_drafts(current_user: str = Depends(get_current_user)):

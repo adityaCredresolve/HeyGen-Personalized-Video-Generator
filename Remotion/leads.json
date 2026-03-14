@@ -88,9 +88,9 @@
     "language": "Hindi",
     "loan_amount": "120000",
     "tos": "38450",
-    "contact_details": "1800-XXX-XXXX",
+    "contact_details": "1800-555-999",
     "product_type": "loan",
-    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि 120000 थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-XXX-XXXX पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
+    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि 120000 थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-555-999 पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
     "title_prefix": "Loan Recall",
     "display_amounts": {
       "primary": {
@@ -132,9 +132,9 @@
       "action": {
         "eyebrow": "तत्काल अगला कदम",
         "headline": "आज ही संपर्क करें",
-        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
         "cta_label": "संपर्क नंबर",
-        "cta_value": "1800-XXX-XXXX"
+        "cta_value": "1800-555-999"
       },
       "closing": {
         "eyebrow": "समाधान अभी भी संभव है",
@@ -142,10 +142,10 @@
         "body": "ABC Finance आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।"
       },
       "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।"
+      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।"
     },
     "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
     "urgency_level": "elevated"
   },
   {
@@ -156,9 +156,9 @@
     "language": "Hindi",
     "loan_amount": "",
     "tos": "38450",
-    "contact_details": "1800-XXX-XXXX",
+    "contact_details": "1800-555-999",
     "product_type": "loan",
-    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि amount थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-XXX-XXXX पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
+    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि amount थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-555-999 पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
     "title_prefix": "Loan Recall",
     "display_amounts": {
       "primary": {
@@ -200,9 +200,9 @@
       "action": {
         "eyebrow": "तत्काल अगला कदम",
         "headline": "आज ही संपर्क करें",
-        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
         "cta_label": "संपर्क नंबर",
-        "cta_value": "1800-XXX-XXXX"
+        "cta_value": "1800-555-999"
       },
       "closing": {
         "eyebrow": "समाधान अभी भी संभव है",
@@ -210,10 +210,10 @@
         "body": "ABC Finance आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।"
       },
       "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।"
+      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।"
     },
     "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
     "urgency_level": "elevated"
   },
   {
@@ -224,9 +224,9 @@
     "language": "Hindi",
     "loan_amount": "",
     "tos": "38450",
-    "contact_details": "1800-XXX-XXXX",
+    "contact_details": "1800-555-999",
     "product_type": "loan",
-    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि amount थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-XXX-XXXX पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
+    "script_text": "नमस्ते Ramesh Kumar। मैं ABC Finance की ओर से आपके loan खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ। हमारी जानकारी के अनुसार इस खाते की मूल राशि amount थी और वर्तमान कुल बकाया राशि 38450 है। खाता संख्या LAN12345 पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है। कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत 1800-555-999 पर संपर्क करें। समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है। धन्यवाद।",
     "title_prefix": "Loan Recall",
     "display_amounts": {
       "primary": {
@@ -268,9 +268,9 @@
       "action": {
         "eyebrow": "तत्काल अगला कदम",
         "headline": "आज ही संपर्क करें",
-        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+        "body": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
         "cta_label": "संपर्क नंबर",
-        "cta_value": "1800-XXX-XXXX"
+        "cta_value": "1800-555-999"
       },
       "closing": {
         "eyebrow": "समाधान अभी भी संभव है",
@@ -278,10 +278,622 @@
         "body": "ABC Finance आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।"
       },
       "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।"
+      "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।"
     },
     "headline_text": "Ramesh Kumar जी, आपके ऋण खाते पर तत्काल ध्यान आवश्यक है",
-    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-XXX-XXXX पर संपर्क करें।",
+    "cta_text": "Ramesh Kumar, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी 1800-555-999 पर संपर्क करें।",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509468",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509494",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509538",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509797",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509922",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773509957",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773510671",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773510760",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+    "urgency_level": "elevated"
+  },
+  {
+    "id": "LAN12345_1773511893",
+    "customer_name": "Ramesh Kumar",
+    "lan": "LAN12345",
+    "client_name": "ABC Finance",
+    "language": "English",
+    "loan_amount": "120000",
+    "tos": "38450",
+    "contact_details": "1800-555-999",
+    "product_type": "loan",
+    "script_text": "Hello Ramesh Kumar. I am speaking on behalf of ABC Finance with an important formal update regarding your loan account. Our records show that the original account value was 120000 and your current outstanding balance is 38450. Despite earlier reminders, the overdue amount on account LAN12345 remains unresolved. Please treat this communication seriously and contact us immediately at 1800-555-999 to discuss payment or a suitable repayment arrangement. An early response may help avoid further account escalation. Thank you.",
+    "title_prefix": "Loan Recall",
+    "display_amounts": {
+      "primary": {
+        "label": "Total Outstanding",
+        "value": "₹38,450",
+        "raw": "38450",
+        "available": true
+      },
+      "secondary": {
+        "label": "Principal Amount",
+        "value": "₹1,20,000",
+        "raw": "120000",
+        "available": true
+      }
+    },
+    "scene_payload": {
+      "opening": {
+        "eyebrow": "Formal Notice",
+        "headline": "Ramesh Kumar, immediate attention required on your Loan Account",
+        "subheadline": "ABC Finance | Account LAN12345"
+      },
+      "account": {
+        "eyebrow": "Loan Payment Status",
+        "headline": "Account LAN12345",
+        "supporting": "Current Total Outstanding ₹38,450",
+        "badge": "Time-Sensitive Formal Notice"
+      },
+      "context": {
+        "eyebrow": "Status Summary",
+        "headline": "Continued delay recorded in Loan Account",
+        "body": "As per ABC Finance records, payment has not been received on time. Total outstanding has reached ₹38,450 and the situation now requires formal attention."
+      },
+      "amounts": {
+        "eyebrow": "Financial Highlights",
+        "headline": "Amount Summary",
+        "body": "Principal amount ₹1,20,000",
+        "note": "Please discuss payment or repayment options immediately."
+      },
+      "action": {
+        "eyebrow": "Immediate Next Step",
+        "headline": "Contact Today",
+        "body": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
+        "cta_label": "Contact Number",
+        "cta_value": "1800-555-999"
+      },
+      "closing": {
+        "eyebrow": "Resolution Still Possible",
+        "headline": "A timely response can prevent further escalation",
+        "body": "ABC Finance is awaiting your prompt response."
+      },
+      "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+      "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options."
+    },
+    "headline_text": "Ramesh Kumar, immediate attention required on your Loan Account",
+    "cta_text": "Ramesh Kumar, contact 1800-555-999 now to discuss resolution and repayment options.",
     "urgency_level": "elevated"
   }
 ]

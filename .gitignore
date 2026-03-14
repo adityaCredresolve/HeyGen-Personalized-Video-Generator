@@ -41,12 +41,20 @@ Thumbs.db
 
 # Output
 output/
+generated/
+temp/
 
 # Node.js (for the wizard subfolder)
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Remotion runtime artifacts
+Remotion/public/metadata.json
+Remotion/public/audio/*
+!Remotion/public/audio/.gitkeep
+Remotion/out/
 
 # Temporary files
 *.tmp

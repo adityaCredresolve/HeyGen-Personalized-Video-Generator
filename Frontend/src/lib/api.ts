@@ -20,7 +20,7 @@ export interface DirectVideoPayload {
   customer_name: string;
   lan: string;
   client_name: string;
-  tos: string;
+  tos?: string;
   loan_amount?: string;
   contact_details?: string;
   product_type?: string;
@@ -73,6 +73,11 @@ export interface StylizeVideoPayload {
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
+function clearStoredAuth(): void {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
 function buildApiUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE_URL}${normalizedPath}`;
@@ -112,6 +117,18 @@ function extractErrorMessage(payload: unknown): string | null {
   );
 }
 
+function normalizeNetworkError(error: unknown): Error {
+  if (error instanceof Error) {
+    const message = error.message.trim();
+    if (/failed to fetch|networkerror|load failed/i.test(message)) {
+      return new Error("Could not reach the server. Check that the backend is running and try again.");
+    }
+    return error;
+  }
+
+  return new Error("Could not reach the server. Check that the backend is running and try again.");
+}
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
@@ -125,15 +142,27 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(buildApiUrl(path), {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(buildApiUrl(path), {
+      ...init,
+      headers,
+    });
+  } catch (error) {
+    throw normalizeNetworkError(error);
+  }
 
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json") ? ((await response.json()) as unknown) : await response.text();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearStoredAuth();
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.assign("/login");
+      }
+    }
+
     if (typeof payload === "string" && payload.trim().startsWith("<")) {
       if (response.status === 504) {
         throw new Error("The render is taking longer than the frontend proxy timeout. Rebuild the frontend container with the updated timeout and try again.");

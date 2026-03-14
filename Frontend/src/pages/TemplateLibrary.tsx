@@ -46,8 +46,15 @@ export default function TemplateLibrary() {
           ) : null}
 
           {templatesQuery.error instanceof Error ? (
-            <section className="surface-card p-10 text-center">
-              <h2 className="font-display text-2xl text-foreground">Coming Soon</h2>
+            <section className="surface-card p-10 text-center space-y-4">
+              <h2 className="font-display text-xl text-foreground">Failed to load templates</h2>
+              <p className="text-sm text-muted-foreground">Something went wrong while fetching templates. Please try again.</p>
+              <button
+                onClick={() => templatesQuery.refetch()}
+                className="mt-4 px-4 py-2 rounded-lg text-sm font-medium border border-border bg-secondary text-foreground hover:bg-surface-hover transition-colors"
+              >
+                Retry
+              </button>
             </section>
           ) : null}
 
@@ -86,7 +93,7 @@ export default function TemplateLibrary() {
                         Copy ID
                       </Button>
                       <Button size="sm" onClick={() => navigate("/create?mode=remotion&fresh=1")}>
-                        Open ScriptMotion
+                        Open Text to Video
                       </Button>
                     </div>
                   </div>
