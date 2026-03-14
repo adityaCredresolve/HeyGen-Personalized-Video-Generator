@@ -46,28 +46,14 @@ export default function TemplateLibrary() {
           ) : null}
 
           {templatesQuery.error instanceof Error ? (
-            <section className="surface-card p-10 text-center space-y-4">
-              <div className="w-16 h-16 rounded-3xl bg-secondary mx-auto flex items-center justify-center">
-                <LayoutTemplate className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-display text-2xl text-foreground">Unable to load templates</h2>
-                <p className="text-sm text-muted-foreground max-w-xl mx-auto">{templatesQuery.error.message}</p>
-              </div>
+            <section className="surface-card p-10 text-center">
+              <h2 className="font-display text-2xl text-foreground">Coming Soon</h2>
             </section>
           ) : null}
 
           {!templatesQuery.isLoading && !templatesQuery.error && (templatesQuery.data?.length ?? 0) === 0 ? (
-            <section className="surface-card p-10 text-center space-y-4">
-              <div className="w-16 h-16 rounded-3xl bg-secondary mx-auto flex items-center justify-center">
-                <LayoutTemplate className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-display text-2xl text-foreground">No templates found</h2>
-                <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                  The backend did not return any templates for this account yet.
-                </p>
-              </div>
+            <section className="surface-card p-10 text-center">
+              <h2 className="font-display text-2xl text-foreground">Coming Soon</h2>
             </section>
           ) : null}
 

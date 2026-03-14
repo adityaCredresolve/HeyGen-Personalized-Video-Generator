@@ -4,9 +4,13 @@ import { STEPS } from "@/store/wizardStore";
 interface WorkflowSidebarProps {
   currentStep: number;
   onStepClick: (step: number) => void;
+  videoType: "avatar" | "remotion";
 }
 
-export function WorkflowSidebar({ currentStep, onStepClick }: WorkflowSidebarProps) {
+export function WorkflowSidebar({ currentStep, onStepClick, videoType }: WorkflowSidebarProps) {
+  const filteredSteps = STEPS.map((step, i) => ({ ...step, originalIndex: i }))
+    .filter((step) => !(videoType === "remotion" && step.key === "avatar"));
+
   return (
     <aside className="w-56 shrink-0 border-r border-border bg-sidebar hidden md:flex flex-col h-full">
       <div className="p-5 flex-1">
@@ -14,14 +18,14 @@ export function WorkflowSidebar({ currentStep, onStepClick }: WorkflowSidebarPro
           Workflow
         </p>
         <nav className="space-y-1">
-          {STEPS.map((step, i) => {
-            const isActive = i === currentStep;
-            const isCompleted = i < currentStep;
+          {filteredSteps.map((step, i) => {
+            const isActive = step.originalIndex === currentStep;
+            const isCompleted = step.originalIndex < currentStep;
 
             return (
               <button
                 key={step.key}
-                onClick={() => onStepClick(i)}
+                onClick={() => onStepClick(step.originalIndex)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-primary/10 text-primary glow-purple-sm"

@@ -27,13 +27,21 @@ VOICE_MAP = {
     'Punjabi': 'pa-IN-KritikaNeural',
 }
 
-DEFAULT_SCRIPT = """नमस्ते {{ customer_name }}।
+DEFAULT_SCRIPT_HI = """नमस्ते {{ customer_name }}।
 मैं {{ client_name }} की ओर से आपके {{ product_type }} खाते के संबंध में एक महत्वपूर्ण औपचारिक सूचना साझा कर रही हूँ।
 हमारी जानकारी के अनुसार इस खाते की मूल राशि {{ loan_amount }} थी और वर्तमान कुल बकाया राशि {{ tos }} है।
 खाता संख्या {{ lan }} पर लंबित भुगतान के बारे में पहले भी सूचित किया गया था, लेकिन स्थिति अभी तक सामान्य नहीं हुई है।
 कृपया इस सूचना को गंभीरता से लें और भुगतान अथवा पुनर्भुगतान विकल्प पर चर्चा के लिए तुरंत {{ contact_details }} पर संपर्क करें।
 समय पर प्रतिक्रिया देने से आगे की एस्केलेशन से बचने में मदद मिल सकती है।
 धन्यवाद।"""
+
+DEFAULT_SCRIPT_EN = """Hello {{ customer_name }}.
+I am sharing an important formal notice regarding your {{ product_type }} account on behalf of {{ client_name }}.
+As per our records, the principal amount of this account was {{ loan_amount }} and the current total outstanding balance is {{ tos }}.
+You were previously notified about the pending payment on account number {{ lan }}, but the status has not returned to normal yet.
+Please take this notice seriously and contact {{ contact_details }} immediately to discuss payment or repayment options.
+A timely response can help avoid further escalation.
+Thank you."""
 
 
 class RemotionService:
@@ -95,7 +103,9 @@ class RemotionService:
         }
 
     def render_script(self, request: DirectVideoRequest) -> str:
-        template_text = request.script_text or DEFAULT_SCRIPT
+        language = request.language or 'Hindi'
+        fallback_script = DEFAULT_SCRIPT_EN if language == 'English' else DEFAULT_SCRIPT_HI
+        template_text = request.script_text or fallback_script
         processed_template = self.normalize_placeholder_syntax(template_text)
         template = Template(processed_template)
         rendered = template.render(**self.build_render_context(request))
@@ -165,33 +175,61 @@ class RemotionService:
         return 'elevated'
 
     @staticmethod
-    def _product_content(product_type: str) -> dict[str, str]:
+    def _product_content(product_type: str, language: str = 'Hindi') -> dict[str, str]:
         normalized = product_type.strip().lower().replace('_', ' ') if product_type else 'loan'
-        mapping = {
-            'loan': {
-                'label': 'लोन खाता',
-                'formal': 'ऋण खाते',
-                'summary': 'लोन भुगतान स्थिति',
-            },
-            'insurance': {
-                'label': 'बीमा खाता',
-                'formal': 'बीमा खाते',
-                'summary': 'बीमा भुगतान स्थिति',
-            },
-            'credit card': {
-                'label': 'क्रेडिट कार्ड खाता',
-                'formal': 'क्रेडिट कार्ड खाते',
-                'summary': 'क्रेडिट कार्ड स्थिति',
-            },
-        }
-        return mapping.get(
-            normalized,
-            {
-                'label': f'{normalized.title()} खाता' if normalized else 'खाता',
-                'formal': f'{normalized.title()} खाते' if normalized else 'खाते',
-                'summary': 'भुगतान स्थिति',
-            },
-        )
+        
+        if language == 'English':
+            mapping = {
+                'loan': {
+                    'label': 'Loan Account',
+                    'formal': 'Loan Account',
+                    'summary': 'Loan Payment Status',
+                },
+                'insurance': {
+                    'label': 'Insurance Account',
+                    'formal': 'Insurance Account',
+                    'summary': 'Insurance Payment Status',
+                },
+                'credit card': {
+                    'label': 'Credit Card Account',
+                    'formal': 'Credit Card Account',
+                    'summary': 'Credit Card Status',
+                },
+            }
+            return mapping.get(
+                normalized,
+                {
+                    'label': f'{normalized.title()} Account' if normalized else 'Account',
+                    'formal': f'{normalized.title()} Account' if normalized else 'Account',
+                    'summary': 'Payment Status',
+                },
+            )
+        else: # Default to Hindi
+            mapping = {
+                'loan': {
+                    'label': 'लोन खाता',
+                    'formal': 'ऋण खाते',
+                    'summary': 'लोन भुगतान स्थिति',
+                },
+                'insurance': {
+                    'label': 'बीमा खाता',
+                    'formal': 'बीमा खाते',
+                    'summary': 'बीमा भुगतान स्थिति',
+                },
+                'credit card': {
+                    'label': 'क्रेडिट कार्ड खाता',
+                    'formal': 'क्रेडिट कार्ड खाते',
+                    'summary': 'क्रेडिट कार्ड स्थिति',
+                },
+            }
+            return mapping.get(
+                normalized,
+                {
+                    'label': f'{normalized.title()} खाता' if normalized else 'खाता',
+                    'formal': f'{normalized.title()} खाते' if normalized else 'खाते',
+                    'summary': 'भुगतान स्थिति',
+                },
+            )
 
     def build_scene_payload(
         self,
@@ -202,66 +240,126 @@ class RemotionService:
         customer_name = self._normalize_text(request.customer_name, 'Customer')
         client_name = self._normalize_text(request.client_name, 'Bank')
         lan = self._normalize_text(request.lan, 'N/A')
+        language = request.language or 'Hindi'
         contact_details = self._normalize_text(request.contact_details, '1800-XXX-XXXX')
-        product_content = self._product_content(self._normalize_text(request.product_type, 'loan'))
+        product_content = self._product_content(self._normalize_text(request.product_type, 'loan'), language=language)
         outstanding_value = display_amounts['primary']['value']
         loan_value = display_amounts['secondary']['value']
-        urgency_copy = {
-            'critical': 'तत्काल हस्तक्षेप आवश्यक',
-            'high': 'शीघ्र समाधान आवश्यक',
-            'elevated': 'समय-संवेदी औपचारिक सूचना',
-        }[urgency_level]
-        secondary_note = (
-            f"मूल राशि {loan_value}"
-            if display_amounts['secondary']['available']
-            else 'उपलब्ध अभिलेखों के अनुसार भुगतान विलंब जारी है'
-        )
-        headline_text = f'{customer_name} जी, आपके {product_content["formal"]} पर तत्काल ध्यान आवश्यक है'
-        cta_text = (
-            f'{customer_name}, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी {contact_details} पर संपर्क करें।'
-        )
 
-        return {
-            'opening': {
-                'eyebrow': 'औपचारिक सूचना',
-                'headline': headline_text,
-                'subheadline': f'{client_name} | खाता {lan}',
-            },
-            'account': {
-                'eyebrow': product_content['summary'],
-                'headline': f'खाता {lan}',
-                'supporting': f'वर्तमान कुल बकाया {outstanding_value}',
-                'badge': urgency_copy,
-            },
-            'context': {
-                'eyebrow': 'स्थिति सारांश',
-                'headline': f'{product_content["label"]} में निरंतर विलंब दर्ज है',
-                'body': (
-                    f'{client_name} के रिकॉर्ड के अनुसार भुगतान समय पर नहीं हुआ है। '
-                    f'कुल बकाया राशि {outstanding_value} तक पहुंच चुकी है और स्थिति पर अब औपचारिक ध्यान अपेक्षित है।'
-                ),
-            },
-            'amounts': {
-                'eyebrow': 'वित्तीय मुख्य बिंदु',
-                'headline': 'राशि सारांश',
-                'body': secondary_note,
-                'note': 'कृपया भुगतान या पुनर्भुगतान विकल्प पर तुरंत चर्चा करें।',
-            },
-            'action': {
-                'eyebrow': 'तत्काल अगला कदम',
-                'headline': 'आज ही संपर्क करें',
-                'body': cta_text,
-                'cta_label': 'संपर्क नंबर',
-                'cta_value': contact_details,
-            },
-            'closing': {
-                'eyebrow': 'समाधान अभी भी संभव है',
-                'headline': 'समय पर प्रतिक्रिया से आगे की एस्केलेशन टल सकती है',
-                'body': f'{client_name} आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।',
-            },
-            'headline_text': headline_text,
-            'cta_text': cta_text,
-        }
+        if language == 'English':
+            urgency_copy = {
+                'critical': 'Immediate Intervention Required',
+                'high': 'Rapid Resolution Necessary',
+                'elevated': 'Time-Sensitive Formal Notice',
+            }[urgency_level]
+            secondary_note = (
+                f"Principal amount {loan_value}"
+                if display_amounts['secondary']['available']
+                else 'Payment delay continues as per available records'
+            )
+            headline_text = f'{customer_name}, immediate attention required on your {product_content["formal"]}'
+            cta_text = (
+                f'{customer_name}, contact {contact_details} now to discuss resolution and repayment options.'
+            )
+            
+            return {
+                'opening': {
+                    'eyebrow': 'Formal Notice',
+                    'headline': headline_text,
+                    'subheadline': f'{client_name} | Account {lan}',
+                },
+                'account': {
+                    'eyebrow': product_content['summary'],
+                    'headline': f'Account {lan}',
+                    'supporting': f'Current Total Outstanding {outstanding_value}',
+                    'badge': urgency_copy,
+                },
+                'context': {
+                    'eyebrow': 'Status Summary',
+                    'headline': f'Continued delay recorded in {product_content["label"]}',
+                    'body': (
+                        f'As per {client_name} records, payment has not been received on time. '
+                        f'Total outstanding has reached {outstanding_value} and the situation now requires formal attention.'
+                    ),
+                },
+                'amounts': {
+                    'eyebrow': 'Financial Highlights',
+                    'headline': 'Amount Summary',
+                    'body': secondary_note,
+                    'note': 'Please discuss payment or repayment options immediately.',
+                },
+                'action': {
+                    'eyebrow': 'Immediate Next Step',
+                    'headline': 'Contact Today',
+                    'body': cta_text,
+                    'cta_label': 'Contact Number',
+                    'cta_value': contact_details,
+                },
+                'closing': {
+                    'eyebrow': 'Resolution Still Possible',
+                    'headline': 'A timely response can prevent further escalation',
+                    'body': f'{client_name} is awaiting your prompt response.',
+                },
+                'headline_text': headline_text,
+                'cta_text': cta_text,
+            }
+        else: # Hindi
+            urgency_copy = {
+                'critical': 'तत्काल हस्तक्षेप आवश्यक',
+                'high': 'शीघ्र समाधान आवश्यक',
+                'elevated': 'समय-संवेदी औपचारिक सूचना',
+            }[urgency_level]
+            secondary_note = (
+                f"मूल राशि {loan_value}"
+                if display_amounts['secondary']['available']
+                else 'उपलब्ध अभिलेखों के अनुसार भुगतान विलंब जारी है'
+            )
+            headline_text = f'{customer_name} जी, आपके {product_content["formal"]} पर तत्काल ध्यान आवश्यक है'
+            cta_text = (
+                f'{customer_name}, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी {contact_details} पर संपर्क करें।'
+            )
+
+            return {
+                'opening': {
+                    'eyebrow': 'औपचारिक सूचना',
+                    'headline': headline_text,
+                    'subheadline': f'{client_name} | खाता {lan}',
+                },
+                'account': {
+                    'eyebrow': product_content['summary'],
+                    'headline': f'खाता {lan}',
+                    'supporting': f'वर्तमान कुल बकाया {outstanding_value}',
+                    'badge': urgency_copy,
+                },
+                'context': {
+                    'eyebrow': 'स्थिति सारांश',
+                    'headline': f'{product_content["label"]} में निरंतर विलंब दर्ज है',
+                    'body': (
+                        f'{client_name} के रिकॉर्ड के अनुसार भुगतान समय पर नहीं हुआ है। '
+                        f'कुल बकाया राशि {outstanding_value} तक पहुंच चुकी है और स्थिति पर अब औपचारिक ध्यान अपेक्षित है।'
+                    ),
+                },
+                'amounts': {
+                    'eyebrow': 'वित्तीय मुख्य बिंदु',
+                    'headline': 'राशि सारांश',
+                    'body': secondary_note,
+                    'note': 'कृपया भुगतान या पुनर्भुगतान विकल्प पर तुरंत चर्चा करें।',
+                },
+                'action': {
+                    'eyebrow': 'तत्काल अगला कदम',
+                    'headline': 'आज ही संपर्क करें',
+                    'body': cta_text,
+                    'cta_label': 'संपर्क नंबर',
+                    'cta_value': contact_details,
+                },
+                'closing': {
+                    'eyebrow': 'समाधान अभी भी संभव है',
+                    'headline': 'समय पर प्रतिक्रिया से आगे की एस्केलेशन टल सकती है',
+                    'body': f'{client_name} आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।',
+                },
+                'headline_text': headline_text,
+                'cta_text': cta_text,
+            }
 
     def build_render_payload(
         self,
@@ -278,14 +376,14 @@ class RemotionService:
         urgency_level = self.determine_urgency_level(request.tos)
         display_amounts = {
             'primary': {
-                'label': 'कुल बकाया राशि',
-                'value': self.format_amount_display(request.tos),
+                'label': 'Total Outstanding' if language == 'English' else 'कुल बकाया राशि',
+                'value': self.format_amount_display(request.tos, fallback=('Amount N/A' if language == 'English' else 'राशि उपलब्ध नहीं')),
                 'raw': self._normalize_text(request.tos, '0'),
                 'available': True,
             },
             'secondary': {
-                'label': 'मूल ऋण राशि',
-                'value': self.format_amount_display(request.loan_amount),
+                'label': 'Principal Amount' if language == 'English' else 'मूल ऋण राशि',
+                'value': self.format_amount_display(request.loan_amount, fallback=('Amount N/A' if language == 'English' else 'राशि उपलब्ध नहीं')),
                 'raw': self._normalize_text(request.loan_amount, ''),
                 'available': request.loan_amount is not None and str(request.loan_amount).strip() != '',
             },

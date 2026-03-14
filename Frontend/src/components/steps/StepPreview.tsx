@@ -23,7 +23,7 @@ export function StepPreview({ state, update }: StepPreviewProps) {
   const activeTranscript = state.videoType === "remotion" ? state.remotionTranscript : state.transcript;
   const avatarName =
     state.videoType === "remotion"
-      ? "ScriptMotion"
+      ? "Text to Video"
       : state.avatarId
         ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
         : "None";
@@ -83,11 +83,10 @@ export function StepPreview({ state, update }: StepPreviewProps) {
               key={r}
               disabled={isProcessing}
               onClick={() => update({ aspectRatio: r, ...RESET_GENERATION_STATE })}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                state.aspectRatio === r
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${state.aspectRatio === r
                   ? "border-primary bg-primary/10 text-foreground"
                   : "border-border bg-secondary text-muted-foreground hover:text-foreground"
-              } disabled:cursor-not-allowed disabled:opacity-50`}
+                } disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {r}
             </button>
@@ -95,19 +94,18 @@ export function StepPreview({ state, update }: StepPreviewProps) {
         </div>
 
         <div
-          className={`relative rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden ${
-            state.aspectRatio === "16:9"
+          className={`relative rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden ${state.aspectRatio === "16:9"
               ? "aspect-video"
               : state.aspectRatio === "9:16"
-              ? "aspect-[9/16] max-h-[420px]"
-              : "aspect-square max-h-[420px]"
-          }`}
+                ? "aspect-[9/16] max-h-[420px]"
+                : "aspect-square max-h-[420px]"
+            }`}
         >
           {isProcessing ? (
-            <ProcessingScreen 
-              status={state.generationStatus} 
-              estimatedTime={estimatedMinutes.toString()} 
-              isLongVideo={wordCount > 300} 
+            <ProcessingScreen
+              status={state.generationStatus}
+              estimatedTime={estimatedMinutes.toString()}
+              isLongVideo={wordCount > 300}
               videoType={state.videoType}
             />
           ) : previewUrl ? (

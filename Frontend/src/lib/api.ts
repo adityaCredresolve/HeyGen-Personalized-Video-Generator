@@ -120,6 +120,11 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(buildApiUrl(path), {
     ...init,
     headers,
@@ -327,4 +332,19 @@ export async function stylizeVideo(videoId: string, payload: StylizeVideoPayload
     method: "POST",
     body: formData,
   });
+}
+
+export async function fetchMyVideos(): Promise<any[]> {
+  return requestJson<any[]>("/my-videos");
+}
+
+export async function saveDraft(draft: any): Promise<{ status: string; draft_id: string }> {
+  return requestJson<{ status: string; draft_id: string }>("/drafts/save", {
+    method: "POST",
+    body: JSON.stringify(draft),
+  });
+}
+
+export async function fetchDrafts(): Promise<any[]> {
+  return requestJson<any[]>("/drafts");
 }

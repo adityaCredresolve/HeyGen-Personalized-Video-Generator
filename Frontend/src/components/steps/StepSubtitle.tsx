@@ -20,6 +20,7 @@ const COLORS = [
   { name: "Green", color: "bg-emerald-500" },
   { name: "Red", color: "bg-red-500" },
   { name: "Yellow", color: "bg-yellow-400" },
+  { name: "Teal", color: "bg-teal-400" },
 ];
 const POSITIONS = ["Top", "Center", "Bottom"];
 const LOGO_POSITIONS = ["Top Left", "Top Right", "Bottom Left", "Bottom Right"];
@@ -88,7 +89,9 @@ export function StepSubtitle({ state, update, onLogoSelected }: StepSubtitleProp
           ? "text-red-400 bg-background/70"
           : state.subtitleColor === "Yellow"
             ? "text-yellow-300 bg-background/70"
-            : "text-foreground bg-background/70";
+            : state.subtitleColor === "Teal"
+              ? "text-teal-400 bg-background/70"
+              : "text-foreground bg-background/70";
 
   return (
     <div className="grid grid-cols-2 gap-8 max-w-5xl">

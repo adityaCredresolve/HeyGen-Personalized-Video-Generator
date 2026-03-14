@@ -22,41 +22,45 @@ import {
   generateDirectVideo,
   generateRemotionVideo,
   stylizeVideo,
+  saveDraft,
 } from "@/lib/api";
 import { STEPS, useWizardStore } from "@/store/wizardStore";
 
-const STEP_META = [
-  {
-    title: "Select Language",
-    subtitle: "Choose the language for your output and pick between avatar or ScriptMotion production.",
-    next: "Next: Avatar →",
-  },
-  {
-    title: "Choose Your Avatar",
-    subtitle: "Select an avatar for the personalized talking-head flow.",
-    next: "Next: Transcript →",
-  },
-  {
-    title: "Add Transcript",
-    subtitle: "Use the script library, edit your script, and fill only the placeholders you need.",
-    next: "Next: Subtitle & Logo →",
-  },
-  {
-    title: "Subtitles & Branding",
-    subtitle: "Configure caption styling and logo placement before generation.",
-    next: "Next: Preview →",
-  },
-  {
-    title: "Preview Video",
-    subtitle: "Track the render while it processes, then review the finished output.",
-    next: "Next: Share →",
-  },
-  {
-    title: "Share & Export",
-    subtitle: "Open, copy, download, or send the finished video.",
-    next: "",
-  },
-] as const;
+const getStepMeta = (step: number, videoType: "avatar" | "remotion") => {
+  const meta = [
+    {
+      title: "Select Language",
+      subtitle: "Choose your desired language.",
+      next: videoType === "remotion" ? "Next: Transcript →" : "Next: Avatar →",
+    },
+    {
+      title: "Choose Your Avatar",
+      subtitle: "Select an avatar for your video.",
+      next: "Next: Transcript →",
+    },
+    {
+      title: "Add Transcript",
+      subtitle: "Customize your script and lead details.",
+      next: "Next: Subtitle & Logo →",
+    },
+    {
+      title: "Subtitles & Branding",
+      subtitle: "Configure captions and logo placement.",
+      next: "Next: Preview →",
+    },
+    {
+      title: "Preview Video",
+      subtitle: "Review your finished output.",
+      next: "Next: Share →",
+    },
+    {
+      title: "Share & Export",
+      subtitle: "Download or share your video.",
+      next: "",
+    },
+  ];
+  return meta[step];
+};
 
 const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "16:9": { width: 1280, height: 720 },
@@ -79,7 +83,7 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const stylingRequestedRef = useRef(false);
   const step = state.currentStep;
-  const meta = STEP_META[step];
+  const meta = getStepMeta(step, state.videoType);
   const activeTranscript = state.videoType === "remotion" ? state.remotionTranscript : state.transcript;
   const isProcessing = state.generationStatus === "submitting" || state.generationStatus === "styling";
   const requestedMode = searchParams.get("mode");
@@ -208,13 +212,26 @@ const Index = () => {
         return;
       }
 
-      update({
-        generationStatus: "failed",
-        generationError: error instanceof Error ? error.message : "Unexpected error while styling the video.",
-      });
       toast.error(error instanceof Error ? error.message : "Unexpected error while styling the video.");
     },
   });
+
+  const saveDraftMutation = useMutation({
+    mutationFn: (draft: any) => saveDraft(draft),
+    onSuccess: () => {
+      // Draft saved
+    },
+  });
+
+  // Auto-save draft whenever state changes significantly
+  useEffect(() => {
+    if (step < 4) {
+      const timer = setTimeout(() => {
+        saveDraftMutation.mutate(state);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [state, step]);
 
   useEffect(() => {
     if (!statusQuery.data || state.generationStatus !== "submitting") {
@@ -467,7 +484,7 @@ const Index = () => {
     <div className="h-screen flex flex-col overflow-hidden">
       <HeaderBar onCreateVideo={handleCreateVideo} primaryLabel="New Draft" />
       <div className="flex flex-1 overflow-hidden">
-        <WorkflowSidebar currentStep={step} onStepClick={handleWorkflowStepClick} />
+        <WorkflowSidebar currentStep={step} onStepClick={handleWorkflowStepClick} videoType={state.videoType} />
         <StepLayout
           step={step}
           title={meta.title}

@@ -13,9 +13,6 @@ const LANGUAGES = [
   { name: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳" },
   { name: "Malayalam", native: "മലയാളം", flag: "🇮🇳" },
   { name: "Punjabi", native: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
-  { name: "Spanish", native: "Español", flag: "🇪🇸" },
-  { name: "French", native: "Français", flag: "🇫🇷" },
-  { name: "Arabic", native: "العربية", flag: "🇸🇦" },
 ];
 
 interface StepLanguageProps {
@@ -41,23 +38,21 @@ export function StepLanguage({ selected, onSelect, videoType, onVideoTypeChange 
           <div className="flex p-1 bg-secondary rounded-xl w-fit border border-border">
             <button
               onClick={() => onVideoTypeChange("avatar")}
-              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
-                videoType === "avatar"
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${videoType === "avatar"
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
-              Avatar Flow
+              Avatar Video flow
             </button>
             <button
               onClick={() => onVideoTypeChange("remotion")}
-              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
-                videoType === "remotion"
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${videoType === "remotion"
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
-              ScriptMotion Flow
+              Text to video flow
             </button>
           </div>
         </div>
@@ -76,19 +71,28 @@ export function StepLanguage({ selected, onSelect, videoType, onVideoTypeChange 
       <div className="grid grid-cols-3 xl:grid-cols-4 gap-3">
         {filtered.map((lang) => {
           const isSelected = selected === lang.name;
+          const isComingSoon = videoType === "remotion" && !["Hindi", "English"].includes(lang.name);
+          const isAvailable = !isComingSoon;
           return (
             <button
               key={lang.name}
+              disabled={!isAvailable}
               onClick={() => onSelect(lang.name)}
-              className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 text-left ${
-                isSelected
+              className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 text-left ${isSelected
                   ? "glow-purple-border border-primary bg-primary/5"
                   : "border-border bg-card hover:bg-surface-hover hover:border-muted-foreground/30"
-              }`}
+                } ${!isAvailable ? "opacity-60 cursor-not-allowed grayscale-[0.5]" : ""}`}
             >
               <span className="text-2xl">{lang.flag}</span>
               <div>
-                <p className="text-sm font-semibold text-foreground">{lang.name}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {lang.name}
+                  {isComingSoon && (
+                    <span className="ml-2 inline-block px-1.5 py-0.5 text-[8px] font-bold bg-muted text-muted-foreground rounded tracking-tighter uppercase whitespace-nowrap">
+                      Coming Soon
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">{lang.native}</p>
               </div>
               {isSelected && (

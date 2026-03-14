@@ -30,9 +30,6 @@ export function StepAvatar({
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">Avatar library</p>
-            <p className="text-xs text-muted-foreground">
-              Select a live avatar from the backend or paste an `avatar_id` manually below.
-            </p>
           </div>
           {isLoading ? (
             <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
@@ -70,7 +67,7 @@ export function StepAvatar({
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {filtered.length === 0 && !isLoading ? (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
-            No avatars matched this filter. Paste an avatar ID manually to keep going.
+            No avatars matched this filter.
           </div>
         ) : null}
 
@@ -125,9 +122,6 @@ export function StepAvatar({
           placeholder="Paste an avatar_id"
           className="bg-secondary border-border"
         />
-        <p className="text-xs text-muted-foreground">
-          Useful when your account has a known avatar ID but metadata loading is restricted.
-        </p>
       </div>
     </div>
   );
