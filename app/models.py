@@ -11,6 +11,7 @@ class LeadRecord(BaseModel):
     tos: str | float | int
     loan_amount: str | float | int | None = None
     contact_details: str | None = None
+    product_type: str | None = "loan"
 
     @field_validator('customer_name', 'lan', 'client_name')
     @classmethod
@@ -24,6 +25,7 @@ class LeadRecord(BaseModel):
 class DirectVideoRequest(LeadRecord):
     avatar_id: str | None = None
     voice_id: str | None = None
+    language: str | None = None
     template_name: str = 'legal_notice_safe_hi.txt'
     script_text: str | None = None
     background_color: str | None = None
@@ -56,7 +58,7 @@ class TemplateVideoRequest(LeadRecord):
 
 
 class VideoJobResult(BaseModel):
-    request_mode: Literal['direct', 'template']
+    request_mode: Literal['direct', 'template', 'remotion']
     video_id: str
     status: str
     video_url: str | None = None
@@ -64,6 +66,8 @@ class VideoJobResult(BaseModel):
     title: str | None = None
     raw_response: dict
     saved_to: Path | None = None
+    video_path: str | None = None
+    audio_path: str | None = None
 
 
 class StyledVideoResult(BaseModel):

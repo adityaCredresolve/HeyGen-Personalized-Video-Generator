@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     default_background_color: str = '#F4F4F4'
     default_output_dir: str = 'output'
     ffmpeg_binary: str = 'ffmpeg'
+    subtitle_font_path: str | None = None
+    remotion_dir: str = 'Remotion'
+    edge_tts_binary: str = 'edge-tts'
+    remotion_npx_binary: str = 'npx'
     poll_interval_seconds: int = 8
     poll_timeout_seconds: int = 1200
     strict_validation: bool = True
@@ -44,8 +48,18 @@ class Settings(BaseSettings):
         return None if cleaned.lower() in placeholder_values else cleaned
 
     @property
+    def project_root(self) -> Path:
+        return Path(__file__).resolve().parent.parent
+
+    @property
     def output_dir(self) -> Path:
-        return Path(self.default_output_dir)
+        path = Path(self.default_output_dir)
+        return path if path.is_absolute() else self.project_root / path
+
+    @property
+    def remotion_path(self) -> Path:
+        path = Path(self.remotion_dir)
+        return path if path.is_absolute() else self.project_root / path
 
     @property
     def cors_origins(self) -> list[str]:

@@ -5,7 +5,7 @@ import pytest
 
 os.environ.setdefault('HEYGEN_API_KEY', 'test-key')
 
-from app.services.media_styling_service import MediaStylingService, StyleRequest
+from app.services.media_styling_service import MediaStylingService, StyleRequest, SubtitleOverlay
 
 
 def test_style_request_requires_captions_or_logo() -> None:
@@ -41,7 +41,13 @@ def test_build_ffmpeg_command_includes_subtitles_and_logo() -> None:
     command = service.build_ffmpeg_command(
         source_video_path=Path('/tmp/source.mp4'),
         final_video_path=Path('/tmp/final.mp4'),
-        subtitle_file_path=Path('/tmp/captions.ass'),
+        subtitle_overlays=[
+            SubtitleOverlay(
+                image_path=Path('/tmp/cue_000.png'),
+                start_seconds=0.0,
+                end_seconds=2.0,
+            )
+        ],
         logo_file_path=Path('/tmp/logo.png'),
         logo_position='top right',
         logo_opacity=80,
@@ -49,9 +55,16 @@ def test_build_ffmpeg_command_includes_subtitles_and_logo() -> None:
     command_text = ' '.join(command)
 
     assert '-filter_complex' in command
-    assert 'ass=filename=' in command_text
+    assert '-loop 1 -i /tmp/cue_000.png' in command_text
+    assert "overlay=0:0:enable='between(t,0.00,2.00)'" in command_text
     assert 'colorchannelmixer=aa=0.80' in command_text
     assert 'overlay=main_w-overlay_w-32:32:format=auto' in command_text
+def test_subtitle_color_rgb_maps_expected_palette() -> None:
+    service = MediaStylingService(client=object())
+
+    assert service._subtitle_color_rgb('white') == (255, 255, 255)
+    assert service._subtitle_color_rgb('yellow') == (255, 238, 112)
+    assert service._subtitle_color_rgb('teal') == (104, 228, 214)
 
 
 def test_style_key_changes_when_logo_changes() -> None:

@@ -6,9 +6,10 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.models import DirectVideoRequest, StyledVideoResult, TemplateVideoRequest
+from app.models import DirectVideoRequest, StyledVideoResult, TemplateVideoRequest, VideoJobResult
 from app.services.heygen_client import HeyGenClient
 from app.services.media_styling_service import MediaStylingService, StyleRequest
+from app.services.remotion_service import RemotionService
 from app.services.video_service import VideoService
 
 app = FastAPI(title='Personalized Video Generator', version='1.0.0')
@@ -24,6 +25,7 @@ app.mount('/artifacts', StaticFiles(directory=settings.output_dir), name='artifa
 service = VideoService()
 client = HeyGenClient()
 styling_service = MediaStylingService(client=client)
+remotion_service = RemotionService()
 
 
 @app.exception_handler(RuntimeError)
@@ -117,3 +119,25 @@ async def stylize_video(
 @app.post('/generate/template')
 def generate_template(request: TemplateVideoRequest, wait: bool = True):
     return service.generate_from_template(request, wait=wait)
+
+
+@app.post('/generate/remotion', response_model=VideoJobResult)
+async def generate_remotion(payload: DirectVideoRequest, request: Request):
+    result = await remotion_service.generate_video(payload)
+    relative_video_path = result['video_path'].relative_to(settings.output_dir).as_posix()
+    return VideoJobResult(
+        request_mode='remotion',
+        video_id=result['job_id'],
+        status='completed',
+        video_url=str(request.url_for('artifacts', path=relative_video_path)),
+        thumbnail_url=None,
+        title=f"{payload.title_prefix} - {payload.customer_name} - {payload.lan}",
+        raw_response={
+            'job_id': result['job_id'],
+            'audio_path': str(result['audio_path']),
+            'text': result['text'],
+        },
+        saved_to=result['video_path'],
+        video_path=str(result['video_path']),
+        audio_path=str(result['audio_path']),
+    )

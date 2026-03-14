@@ -1,26 +1,62 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useWizardStore, STEPS } from "@/store/wizardStore";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { HeaderBar } from "@/components/HeaderBar";
-import { WorkflowSidebar } from "@/components/WorkflowSidebar";
 import { StepLayout } from "@/components/StepLayout";
-import { StepLanguage } from "@/components/steps/StepLanguage";
+import { WorkflowSidebar } from "@/components/WorkflowSidebar";
 import { StepAvatar } from "@/components/steps/StepAvatar";
-import { StepTranscript } from "@/components/steps/StepTranscript";
-import { StepSubtitle } from "@/components/steps/StepSubtitle";
+import { StepLanguage } from "@/components/steps/StepLanguage";
 import { StepPreview } from "@/components/steps/StepPreview";
 import { StepShare } from "@/components/steps/StepShare";
-import { toast } from "sonner";
-import { DirectVideoPayload, fetchAvatars, fetchVideoStatus, generateDirectVideo, stylizeVideo } from "@/lib/api";
+import { StepSubtitle } from "@/components/steps/StepSubtitle";
+import { StepTranscript } from "@/components/steps/StepTranscript";
+import {
+  AVATAR_TEMPLATES,
+  REMOTION_TEMPLATES,
+} from "@/lib/templates";
+import {
+  DirectVideoPayload,
+  fetchAvatars,
+  fetchVideoStatus,
+  generateDirectVideo,
+  generateRemotionVideo,
+  stylizeVideo,
+} from "@/lib/api";
+import { STEPS, useWizardStore } from "@/store/wizardStore";
 
 const STEP_META = [
-  { title: "Select Language", subtitle: "Choose the language for your avatar's voice and generated content.", next: "Next: Avatar →" },
-  { title: "Choose Your Avatar", subtitle: "Select an AI avatar to represent your brand in the video.", next: "Next: Transcript →" },
-  { title: "Add Transcript", subtitle: "Write or generate your video script. Use [pause] for timing, [emphasis] for key words.", next: "Next: Subtitle & Logo →" },
-  { title: "Subtitles & Branding", subtitle: "Style your captions and add your company logo.", next: "Next: Preview →" },
-  { title: "Preview Video", subtitle: "Review your avatar video before exporting.", next: "Next: Share →" },
-  { title: "Share & Export", subtitle: "Export your video or share it with your team.", next: "" },
-];
+  {
+    title: "Select Language",
+    subtitle: "Choose the language for your output and pick between avatar or ScriptMotion production.",
+    next: "Next: Avatar →",
+  },
+  {
+    title: "Choose Your Avatar",
+    subtitle: "Select an avatar for the personalized talking-head flow.",
+    next: "Next: Transcript →",
+  },
+  {
+    title: "Add Transcript",
+    subtitle: "Use the script library, edit your script, and fill only the placeholders you need.",
+    next: "Next: Subtitle & Logo →",
+  },
+  {
+    title: "Subtitles & Branding",
+    subtitle: "Configure caption styling and logo placement before generation.",
+    next: "Next: Preview →",
+  },
+  {
+    title: "Preview Video",
+    subtitle: "Track the render while it processes, then review the finished output.",
+    next: "Next: Share →",
+  },
+  {
+    title: "Share & Export",
+    subtitle: "Open, copy, download, or send the finished video.",
+    next: "",
+  },
+] as const;
 
 const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "16:9": { width: 1280, height: 720 },
@@ -40,19 +76,31 @@ const RESET_GENERATION_STATE = {
 const Index = () => {
   const { state, update, nextStep, prevStep, goToStep, reset, canProceed } = useWizardStore();
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const stylingRequestedRef = useRef(false);
   const step = state.currentStep;
   const meta = STEP_META[step];
+  const activeTranscript = state.videoType === "remotion" ? state.remotionTranscript : state.transcript;
+  const isProcessing = state.generationStatus === "submitting" || state.generationStatus === "styling";
+  const requestedMode = searchParams.get("mode");
+  const requestedFreshDraft = searchParams.get("fresh") === "1";
+
   const avatarsQuery = useQuery({
     queryKey: ["avatars"],
     queryFn: fetchAvatars,
+    enabled: state.videoType === "avatar",
   });
+
   const statusQuery = useQuery({
     queryKey: ["video-status", state.generatedVideo?.video_id],
     queryFn: () => fetchVideoStatus(state.generatedVideo!.video_id, state.generatedVideo?.request_mode ?? "direct"),
-    enabled: Boolean(state.generatedVideo?.video_id) && state.generationStatus === "submitting",
+    enabled:
+      Boolean(state.generatedVideo?.video_id) &&
+      state.generatedVideo?.request_mode !== "remotion" &&
+      state.generationStatus === "submitting",
     refetchInterval: 5000,
   });
+
   const generateVideoMutation = useMutation({
     mutationFn: (payload: DirectVideoPayload) => generateDirectVideo(payload, false),
     onMutate: () => {
@@ -71,7 +119,7 @@ const Index = () => {
         generationStatus: "submitting",
         generationError: "",
       });
-      const wordCount = state.transcript.trim() ? state.transcript.trim().split(/\s+/).length : 0;
+      const wordCount = activeTranscript.trim() ? activeTranscript.trim().split(/\s+/).length : 0;
       const durationMin = Math.max(1, Math.round(wordCount / 130));
       const estTime = Math.max(2, durationMin * 2);
       toast.success(`Video creation under progress. Estimated time: ~${estTime} mins. We'll notify you when it's ready.`);
@@ -84,6 +132,37 @@ const Index = () => {
       toast.error(error instanceof Error ? error.message : "Unexpected error while generating the video.");
     },
   });
+
+  const generateRemotionMutation = useMutation({
+    mutationFn: (payload: DirectVideoPayload) => generateRemotionVideo(payload),
+    onMutate: () => {
+      stylingRequestedRef.current = false;
+      update({
+        generationStatus: "submitting",
+        generationError: "",
+        styledVideoUrl: "",
+        styledVideoPath: "",
+        subtitleSource: "disabled",
+      });
+    },
+    onSuccess: (result) => {
+      update({
+        generatedVideo: result,
+        generationStatus: "completed",
+        generationError: "",
+      });
+      toast.success("ScriptMotion video generated successfully.");
+      goToStep(5);
+    },
+    onError: (error) => {
+      update({
+        generationStatus: "failed",
+        generationError: error instanceof Error ? error.message : "Unexpected error while generating the ScriptMotion video.",
+      });
+      toast.error(error instanceof Error ? error.message : "Unexpected error while generating the ScriptMotion video.");
+    },
+  });
+
   const stylizeVideoMutation = useMutation({
     mutationFn: (videoId: string) =>
       stylizeVideo(videoId, {
@@ -111,9 +190,24 @@ const Index = () => {
         generationError: "",
       });
       toast.success("Video generated and styled successfully.");
+      goToStep(5);
     },
     onError: (error) => {
       stylingRequestedRef.current = false;
+      const baseVideoUrl = state.generatedVideo?.video_url ?? "";
+      if (baseVideoUrl) {
+        update({
+          generationStatus: "completed",
+          generationError: "",
+          styledVideoUrl: "",
+          styledVideoPath: "",
+          subtitleSource: "disabled",
+        });
+        toast.info("Your video is ready. Extra branding could not be applied, so we opened the standard version.");
+        goToStep(5);
+        return;
+      }
+
       update({
         generationStatus: "failed",
         generationError: error instanceof Error ? error.message : "Unexpected error while styling the video.",
@@ -134,7 +228,7 @@ const Index = () => {
     const nextStatus = statusQuery.data.status.toLowerCase();
     if (["completed", "done", "success"].includes(nextStatus)) {
       update({ generatedVideo: statusQuery.data, generationError: "" });
-      if ((state.includeCaptions || logoFile) && !stylingRequestedRef.current) {
+      if (state.videoType === "avatar" && (state.includeCaptions || logoFile) && !stylingRequestedRef.current) {
         stylingRequestedRef.current = true;
         stylizeVideoMutation.mutate(statusQuery.data.video_id);
       } else {
@@ -143,6 +237,7 @@ const Index = () => {
           generationError: "",
         });
         toast.success("Video generated successfully.");
+        goToStep(5);
       }
       return;
     }
@@ -150,7 +245,17 @@ const Index = () => {
     update({
       generatedVideo: statusQuery.data,
     });
-  }, [logoFile, state.generatedVideo?.video_id, state.generationStatus, state.includeCaptions, statusQuery.data, stylizeVideoMutation, update]);
+  }, [
+    goToStep,
+    logoFile,
+    state.generatedVideo?.video_id,
+    state.generationStatus,
+    state.includeCaptions,
+    state.videoType,
+    statusQuery.data,
+    stylizeVideoMutation,
+    update,
+  ]);
 
   useEffect(() => {
     if (!statusQuery.error || state.generationStatus !== "submitting") {
@@ -164,9 +269,51 @@ const Index = () => {
     toast.error(statusQuery.error instanceof Error ? statusQuery.error.message : "Unexpected error while checking video status.");
   }, [state.generationStatus, statusQuery.error, update]);
 
+  useEffect(() => {
+    if (requestedMode !== "avatar" && requestedMode !== "remotion") {
+      return;
+    }
+
+    stylingRequestedRef.current = false;
+    generateVideoMutation.reset();
+    generateRemotionMutation.reset();
+    stylizeVideoMutation.reset();
+    setLogoFile(null);
+
+    if (requestedFreshDraft) {
+      reset();
+    }
+
+    const language = requestedFreshDraft ? "Hindi" : state.language;
+    update({
+      currentStep: 0,
+      language,
+      outputLanguage: language,
+      videoType: requestedMode,
+      avatarId: requestedFreshDraft || requestedMode === "remotion" ? "" : state.avatarId,
+      transcript: AVATAR_TEMPLATES[language] ?? AVATAR_TEMPLATES.Hindi,
+      remotionTranscript: REMOTION_TEMPLATES[language] ?? REMOTION_TEMPLATES.Hindi,
+      ...RESET_GENERATION_STATE,
+    });
+
+    setSearchParams({}, { replace: true });
+  }, [
+    requestedFreshDraft,
+    requestedMode,
+    reset,
+    setSearchParams,
+    state.avatarId,
+    state.language,
+    stylizeVideoMutation,
+    generateRemotionMutation,
+    generateVideoMutation,
+    update,
+  ]);
+
   const handleCreateVideo = () => {
     stylingRequestedRef.current = false;
     generateVideoMutation.reset();
+    generateRemotionMutation.reset();
     stylizeVideoMutation.reset();
     setLogoFile(null);
     reset();
@@ -176,6 +323,7 @@ const Index = () => {
   const handleCancel = () => {
     stylingRequestedRef.current = false;
     generateVideoMutation.reset();
+    generateRemotionMutation.reset();
     stylizeVideoMutation.reset();
     update({
       generationStatus: "idle",
@@ -184,19 +332,20 @@ const Index = () => {
     toast.info("Generation interrupted.");
   };
 
-  const handleExport = () => {
-    if (state.generationStatus === "submitting" || state.generationStatus === "styling") {
-      toast.info("This video is still processing. Please wait for the current job to finish.");
-      return;
-    }
-
-    if (!state.avatarId.trim()) {
+  const handleGenerate = () => {
+    if (state.videoType === "avatar" && !state.avatarId.trim()) {
       toast.error("Select an avatar before generating the video.");
       goToStep(1);
       return;
     }
 
-    if (!state.customerName.trim() || !state.lan.trim() || !state.clientName.trim() || !state.tos.trim() || !state.transcript.trim()) {
+    if (
+      !state.customerName.trim() ||
+      !state.lan.trim() ||
+      !state.clientName.trim() ||
+      !state.tos.trim() ||
+      !activeTranscript.trim()
+    ) {
       toast.error("Complete the lead details and transcript before generating the video.");
       goToStep(2);
       return;
@@ -210,9 +359,11 @@ const Index = () => {
       tos: state.tos.trim(),
       loan_amount: state.loanAmount.trim() || undefined,
       contact_details: state.contactDetails.trim() || undefined,
-      avatar_id: state.avatarId.trim() || undefined,
+      product_type: state.productType.trim() || undefined,
+      avatar_id: state.videoType === "avatar" ? state.avatarId.trim() || undefined : undefined,
       template_name: state.templateName,
-      script_text: state.transcript.trim() || undefined,
+      language: state.language,
+      script_text: activeTranscript.trim() || undefined,
       background_color: state.backgroundColor,
       include_captions: state.includeCaptions,
       title_prefix: state.titlePrefix.trim() || undefined,
@@ -220,7 +371,35 @@ const Index = () => {
       video_height: dimensions.height,
     };
 
-    generateVideoMutation.mutate(payload);
+    if (state.videoType === "remotion") {
+      generateRemotionMutation.mutate(payload);
+    } else {
+      generateVideoMutation.mutate(payload);
+    }
+
+    goToStep(4);
+  };
+
+  const handleNextPrimary = () => {
+    if (step === 3) {
+      handleGenerate();
+      return;
+    }
+    nextStep();
+  };
+
+  const handleWorkflowStepClick = (targetStep: number) => {
+    if (isProcessing && targetStep === 5) {
+      toast.info("The video is still processing. You'll reach Share automatically when it's ready.");
+      return;
+    }
+
+    if (state.videoType === "remotion" && targetStep === 1) {
+      goToStep(2);
+      return;
+    }
+
+    goToStep(targetStep);
   };
 
   const renderStep = () => {
@@ -229,7 +408,34 @@ const Index = () => {
         return (
           <StepLanguage
             selected={state.language}
-            onSelect={(lang) => update({ language: lang, outputLanguage: lang })}
+            onSelect={(lang) => {
+              const partial = {
+                language: lang,
+                outputLanguage: lang,
+                ...(state.videoType === "remotion" && REMOTION_TEMPLATES[lang]
+                  ? { remotionTranscript: REMOTION_TEMPLATES[lang] }
+                  : {}),
+                ...(state.videoType === "avatar" && AVATAR_TEMPLATES[lang]
+                  ? { transcript: AVATAR_TEMPLATES[lang] }
+                  : {}),
+                ...RESET_GENERATION_STATE,
+              };
+              update(partial);
+            }}
+            videoType={state.videoType}
+            onVideoTypeChange={(type) => {
+              const partial = {
+                videoType: type,
+                ...(type === "remotion" && REMOTION_TEMPLATES[state.language]
+                  ? { remotionTranscript: REMOTION_TEMPLATES[state.language] }
+                  : {}),
+                ...(type === "avatar" && AVATAR_TEMPLATES[state.language]
+                  ? { transcript: AVATAR_TEMPLATES[state.language] }
+                  : {}),
+                ...RESET_GENERATION_STATE,
+              };
+              update(partial);
+            }}
           />
         );
       case 1:
@@ -241,7 +447,7 @@ const Index = () => {
             selectedId={state.avatarId}
             filter={state.avatarFilter}
             onSelect={(id) => update({ avatarId: id, ...RESET_GENERATION_STATE })}
-            onFilterChange={(f) => update({ avatarFilter: f })}
+            onFilterChange={(filter) => update({ avatarFilter: filter })}
           />
         );
       case 2:
@@ -261,21 +467,29 @@ const Index = () => {
     <div className="h-screen flex flex-col overflow-hidden">
       <HeaderBar onCreateVideo={handleCreateVideo} primaryLabel="New Draft" />
       <div className="flex flex-1 overflow-hidden">
-        <WorkflowSidebar currentStep={step} onStepClick={goToStep} />
+        <WorkflowSidebar currentStep={step} onStepClick={handleWorkflowStepClick} />
         <StepLayout
           step={step}
           title={meta.title}
           subtitle={meta.subtitle}
-          onNext={nextStep}
+          onNext={handleNextPrimary}
           onBack={prevStep}
-          nextLabel={meta.next}
+          nextLabel={step === 3 ? "Generate Video ✨" : meta.next}
           canProceed={canProceed()}
           isLast={step === STEPS.length - 1}
-          lastAction={handleExport}
-          lastLabel={state.generatedVideo ? "Regenerate Video" : "Generate Video"}
-          primaryActionBusy={generateVideoMutation.isPending || stylizeVideoMutation.isPending || state.generationStatus === "submitting" || state.generationStatus === "styling"}
-          primaryBusyLabel={stylizeVideoMutation.isPending || state.generationStatus === "styling" ? "Applying branding..." : "Video creation under progress..."}
-          onCancel={handleCancel}
+          lastLabel="Finish"
+          primaryActionBusy={
+            generateVideoMutation.isPending ||
+            generateRemotionMutation.isPending ||
+            stylizeVideoMutation.isPending ||
+            isProcessing
+          }
+          primaryBusyLabel={
+            stylizeVideoMutation.isPending || state.generationStatus === "styling"
+              ? "Applying branding..."
+              : "Video creation under progress..."
+          }
+          onCancel={step === 4 && isProcessing ? handleCancel : undefined}
         >
           {renderStep()}
         </StepLayout>

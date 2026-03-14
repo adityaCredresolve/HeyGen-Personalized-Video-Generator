@@ -48,7 +48,8 @@ docker run --rm -p 8080:80 personalized-video-frontend
 
 Current Docker default:
 
-- `VITE_API_BASE_URL=http://13.127.221.158:8000`
+- `VITE_API_BASE_URL=/api`
+- `BACKEND_ORIGIN=http://host.docker.internal:8000`
 
 Override it at build time if needed:
 
@@ -56,7 +57,7 @@ Override it at build time if needed:
 docker build --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000 -t personalized-video-frontend .
 ```
 
-If you instead build with `VITE_API_BASE_URL=/api`, [nginx.conf.template](/Users/aditya/Downloads/heygen_video_generator/Frontend/nginx.conf.template) can proxy API calls through `BACKEND_ORIGIN`.
+The default Docker flow now uses [nginx.conf.template](/Users/aditya/Downloads/heygen_video_generator/Frontend/nginx.conf.template) to proxy `/api` requests through `BACKEND_ORIGIN`, so it works with the local FastAPI app including `/generate/remotion`.
 
 ## Key Files
 

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type { VideoJobResult } from "@/lib/api";
+import { AVATAR_TEMPLATES, REMOTION_TEMPLATES } from "@/lib/templates";
 
 export interface WizardState {
   currentStep: number;
@@ -12,6 +13,7 @@ export interface WizardState {
   avatarId: string;
   avatarFilter: string;
   transcript: string;
+  remotionTranscript: string;
   subtitleColor: string;
   subtitlePosition: string;
   subtitleLanguage: string;
@@ -30,6 +32,8 @@ export interface WizardState {
   backgroundColor: string;
   includeCaptions: boolean;
   titlePrefix: string;
+  productType: string;
+  videoType: "avatar" | "remotion";
   generatedVideo: VideoJobResult | null;
   styledVideoUrl: string;
   styledVideoPath: string;
@@ -40,7 +44,7 @@ export interface WizardState {
 
 const defaultState: WizardState = {
   currentStep: 0,
-  language: "English",
+  language: "Hindi",
   llmModel: "Claude 3.5 Sonnet",
   outputLanguage: "Hindi",
   videoTone: "Professional",
@@ -48,7 +52,8 @@ const defaultState: WizardState = {
   systemPrompt: "",
   avatarId: "",
   avatarFilter: "All",
-  transcript: `नमस्ते {{ customer_name }}। मैं एडवोकेट अदिति मेहरा बोल रही हूँ, आपके {{ client_name }} के साथ लोन अकाउंट नंबर {{ lan }}{% if loan_amt %}, लोन राशि {{ loan_amt }}{% endif %} के संबंध में। आपने कई ईएमआई भुगतान समय पर नहीं किए हैं, और आपकी कुल बकाया राशि {{ tos }} है। इस कारण, बैंक ने आपके खिलाफ लोन रिकॉल नोटिस जारी किया है, जिसका अर्थ है कि पूरी बकाया राशि तुरंत चुकानी होगी। यदि नोटिस को नज़रअंदाज़ किया गया, तो बैंक आर्बिट्रेशन शुरू कर सकता है, और पूरी लोन राशि, ब्याज व कानूनी खर्च वसूल सकता है। बैंक की मंशा कानूनी कार्रवाई से बचने की है। यदि आप पूरी राशि नहीं चुका सकते, तो जितना संभव हो उतना भुगतान करें या तुरंत बैंक से संपर्क करें। अभी प्रतिक्रिया देने से आप आर्बिट्रेशन और आगे की कानूनी समस्याओं से बच सकते हैं।`,
+  transcript: AVATAR_TEMPLATES.Hindi,
+  remotionTranscript: REMOTION_TEMPLATES.Hindi,
   subtitleColor: "White",
   subtitlePosition: "Bottom",
   subtitleLanguage: "Hindi",
@@ -67,6 +72,8 @@ const defaultState: WizardState = {
   backgroundColor: "#F4F4F4",
   includeCaptions: true,
   titlePrefix: "Loan Recall",
+  productType: "loan",
+  videoType: "avatar",
   generatedVideo: null,
   styledVideoUrl: "",
   styledVideoPath: "",
@@ -113,11 +120,23 @@ export function useWizardStore() {
   }, []);
 
   const nextStep = useCallback(() => {
-    setState((prev) => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, STEPS.length - 1) }));
+    setState((prev) => {
+      const next = prev.currentStep + 1;
+      if (next === 1 && prev.videoType === "remotion") {
+        return { ...prev, currentStep: 2 };
+      }
+      return { ...prev, currentStep: Math.min(next, STEPS.length - 1) };
+    });
   }, []);
 
   const prevStep = useCallback(() => {
-    setState((prev) => ({ ...prev, currentStep: Math.max(prev.currentStep - 1, 0) }));
+    setState((prev) => {
+      const previous = prev.currentStep - 1;
+      if (previous === 1 && prev.videoType === "remotion") {
+        return { ...prev, currentStep: 0 };
+      }
+      return { ...prev, currentStep: Math.max(previous, 0) };
+    });
   }, []);
 
   const goToStep = useCallback((step: number) => {
@@ -131,15 +150,19 @@ export function useWizardStore() {
   const canProceed = useCallback((): boolean => {
     const s = state;
     switch (s.currentStep) {
-      case 1: return !!s.avatarId;
+      case 1:
+        return s.videoType === "remotion" || !!s.avatarId;
       case 2:
+      case 3:
         return (
-          s.transcript.trim().length > 0 &&
+          (s.videoType === "remotion" ? s.remotionTranscript : s.transcript).trim().length > 0 &&
           s.customerName.trim().length > 0 &&
           s.lan.trim().length > 0 &&
           s.clientName.trim().length > 0 &&
           s.tos.trim().length > 0
         );
+      case 4:
+        return s.generationStatus === "completed";
       default: return true;
     }
   }, [state]);

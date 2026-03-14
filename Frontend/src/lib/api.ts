@@ -23,8 +23,10 @@ export interface DirectVideoPayload {
   tos: string;
   loan_amount?: string;
   contact_details?: string;
+  product_type?: string;
   avatar_id?: string;
   voice_id?: string;
+  language?: string;
   template_name?: string;
   script_text?: string;
   background_color?: string;
@@ -35,7 +37,7 @@ export interface DirectVideoPayload {
 }
 
 export interface VideoJobResult {
-  request_mode: "direct" | "template";
+  request_mode: "direct" | "template" | "remotion";
   video_id: string;
   status: string;
   video_url: string | null;
@@ -43,6 +45,8 @@ export interface VideoJobResult {
   title: string | null;
   raw_response: Record<string, unknown>;
   saved_to: string | null;
+  video_path?: string | null;
+  audio_path?: string | null;
 }
 
 export interface StyledVideoResult {
@@ -125,6 +129,12 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const payload = contentType.includes("application/json") ? ((await response.json()) as unknown) : await response.text();
 
   if (!response.ok) {
+    if (typeof payload === "string" && payload.trim().startsWith("<")) {
+      if (response.status === 504) {
+        throw new Error("The render is taking longer than the frontend proxy timeout. Rebuild the frontend container with the updated timeout and try again.");
+      }
+      throw new Error(`Request failed with status ${response.status}`);
+    }
     throw new Error(extractErrorMessage(payload) ?? `Request failed with status ${response.status}`);
   }
 
@@ -287,8 +297,15 @@ export async function generateDirectVideo(payload: DirectVideoPayload, wait = tr
   });
 }
 
-export async function fetchVideoStatus(videoId: string, requestMode: "direct" | "template" = "direct"): Promise<VideoJobResult> {
+export async function fetchVideoStatus(videoId: string, requestMode: "direct" | "template" | "remotion" = "direct"): Promise<VideoJobResult> {
   return requestJson<VideoJobResult>(`/videos/${videoId}/status?request_mode=${requestMode}`);
+}
+
+export async function generateRemotionVideo(payload: DirectVideoPayload): Promise<VideoJobResult> {
+  return requestJson<VideoJobResult>("/generate/remotion", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function stylizeVideo(videoId: string, payload: StylizeVideoPayload): Promise<StyledVideoResult> {

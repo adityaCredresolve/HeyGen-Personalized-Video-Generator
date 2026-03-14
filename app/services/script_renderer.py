@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
@@ -14,18 +15,36 @@ _env = Environment(
     trim_blocks=True,
     lstrip_blocks=True,
 )
+_SINGLE_BRACE_PATTERN = re.compile(r'(?<!{){([^{}\s]+)}(?!})')
+
+
+def _normalize_placeholder_syntax(text: str) -> str:
+    return _SINGLE_BRACE_PATTERN.sub(r'{{\1}}', text)
 
 
 def build_context(lead: LeadRecord) -> dict:
     loan_amount = parse_money(lead.loan_amount, field_name='loan_amount') if lead.loan_amount is not None else ''
+    tos = parse_money(lead.tos, field_name='tos')
+    contact_details = lead.contact_details or ''
+    product_type = lead.product_type or 'loan'
     return {
         'customer_name': lead.customer_name,
+        'customer': lead.customer_name,
         'lan': lead.lan,
+        'account_number': lead.lan,
         'client_name': lead.client_name,
-        'tos': parse_money(lead.tos, field_name='tos'),
+        'client': lead.client_name,
+        'tos': tos,
+        'balance': tos,
+        'outstanding': tos,
         'loan_amt': loan_amount,
         'loan_amount': loan_amount,
-        'contact_details': lead.contact_details or '',
+        'amt': loan_amount,
+        'contact_details': contact_details,
+        'helpline': contact_details,
+        'contact': contact_details,
+        'product_type': product_type,
+        'product': product_type,
     }
 
 
@@ -38,6 +57,6 @@ def render_template(template_name: str, lead: LeadRecord) -> str:
 
 def render_inline_template(text: str, lead: LeadRecord) -> str:
     context = build_context(lead)
-    template = _env.from_string(text)
+    template = _env.from_string(_normalize_placeholder_syntax(text))
     rendered = template.render(**context)
     return ' '.join(rendered.split())

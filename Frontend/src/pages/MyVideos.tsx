@@ -1,4 +1,4 @@
-import { Film, FolderOpen, PlayCircle, Sparkles } from "lucide-react";
+import { Film, PlayCircle, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { HeaderBar } from "@/components/HeaderBar";
@@ -12,6 +12,9 @@ const STATS = [
 
 export default function MyVideos() {
   const navigate = useNavigate();
+  const openCreate = (mode: "avatar" | "remotion") => {
+    navigate(`/create?mode=${mode}&fresh=1`);
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -25,11 +28,28 @@ export default function MyVideos() {
               <div className="space-y-2">
                 <h1 className="font-display text-4xl text-foreground">My Videos</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  View and manage all your generated avatar videos here.
+                  View and manage all your generated videos here, whether you create them with the current avatar flow or the new ScriptMotion flow.
                 </p>
               </div>
             </div>
-
+            <div className="grid gap-3 sm:grid-cols-2 lg:w-[28rem]">
+              <button
+                type="button"
+                onClick={() => openCreate("avatar")}
+                className="rounded-2xl border border-primary/25 bg-primary/10 p-4 text-left transition-all hover:border-primary/40 hover:bg-primary/15"
+              >
+                <p className="text-sm font-semibold text-foreground">Current Avatar Flow</p>
+                <p className="mt-1 text-xs text-muted-foreground">Use the existing avatar-based video generation path.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => openCreate("remotion")}
+                className="rounded-2xl border border-border bg-card p-4 text-left transition-all hover:border-primary/30 hover:bg-surface-hover"
+              >
+                <p className="text-sm font-semibold text-foreground">ScriptMotion Flow</p>
+                <p className="mt-1 text-xs text-muted-foreground">Start the cinematic script-driven rendering workflow.</p>
+              </button>
+            </div>
           </section>
 
           <section className="grid gap-4 md:grid-cols-3">
@@ -65,17 +85,27 @@ export default function MyVideos() {
             <div className="space-y-3 mb-8">
               <h2 className="font-display text-2xl font-semibold text-foreground">Your canvas is empty</h2>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                You haven't generated any AI avatar videos yet. Head over to the studio to cast your first digital twin and bring your script to life.
+                Start with the avatar flow or try the new ScriptMotion workflow for a cinematic script-driven render.
               </p>
             </div>
-            <Button
-              size="lg"
-              onClick={() => navigate("/create")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Create First Video
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                size="lg"
+                onClick={() => openCreate("avatar")}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Start Avatar Flow
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => openCreate("remotion")}
+                className="border-border font-semibold"
+              >
+                Start ScriptMotion
+              </Button>
+            </div>
           </section>
         </div>
       </main>

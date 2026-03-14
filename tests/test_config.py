@@ -26,3 +26,11 @@ def test_ffmpeg_binary_defaults_to_ffmpeg() -> None:
     settings = Settings(heygen_api_key='test-key')
 
     assert settings.ffmpeg_binary == 'ffmpeg'
+
+
+def test_remotion_defaults_are_set() -> None:
+    settings = Settings(heygen_api_key='test-key')
+
+    assert settings.remotion_dir == 'Remotion'
+    assert settings.edge_tts_binary == 'edge-tts'
+    assert settings.remotion_npx_binary == 'npx'

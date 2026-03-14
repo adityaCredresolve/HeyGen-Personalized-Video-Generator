@@ -1,0 +1,307 @@
+import leadsData from '../leads.json';
+import metadataData from '../public/metadata.json';
+
+export const FPS = 30;
+export const DEFAULT_DURATION_SECONDS = 12;
+export const TRANSITION_FRAMES = 14;
+export const WIDTH = 1280;
+export const HEIGHT = 720;
+
+export const SCENE_DEFINITIONS = [
+  {key: 'opening', label: 'Notice', ratio: 0.16},
+  {key: 'account', label: 'Account', ratio: 0.16},
+  {key: 'context', label: 'Review', ratio: 0.19},
+  {key: 'amounts', label: 'Amounts', ratio: 0.16},
+  {key: 'action', label: 'Action', ratio: 0.18},
+  {key: 'closing', label: 'Resolve', ratio: 0.15},
+];
+
+const fallbackLead = {
+  id: 'preview-sample',
+  customer_name: 'Preview Customer',
+  lan: 'PREVIEW-001',
+  client_name: 'CredResolve',
+  language: 'Hindi',
+  loan_amount: '₹1,20,000',
+  tos: '₹38,450',
+  contact_details: '1800-123-456',
+  product_type: 'loan',
+  title_prefix: 'Account Notice',
+  script_text:
+    'यह एक प्रीव्यू टेम्पलेट है। वास्तविक रेंडर के दौरान ग्राहक-विशिष्ट डेटा और ऑडियो अपने आप लोड हो जाएंगे।',
+};
+
+const metadata = typeof metadataData === 'object' && metadataData ? metadataData : {};
+
+export const safeString = (value, fallback = 'Not available') => {
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim();
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  return fallback;
+};
+
+export const extractNumericAmount = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+
+  const cleaned = String(value).replace(/[^\d.]/g, '');
+  if (!cleaned) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(cleaned);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+};
+
+const formatIndianNumber = (value) => {
+  const digits = String(Math.abs(value));
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  const lastThree = digits.slice(-3);
+  const remaining = digits.slice(0, -3);
+  const grouped = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+  return value < 0 ? `-${grouped},${lastThree}` : `${grouped},${lastThree}`;
+};
+
+export const formatAmountDisplay = (value, fallback = 'राशि उपलब्ध नहीं') => {
+  const numericValue = extractNumericAmount(value);
+  if (numericValue === null) {
+    const cleaned = value === null || value === undefined ? '' : String(value).trim();
+    return cleaned || fallback;
+  }
+  return `₹${formatIndianNumber(numericValue)}`;
+};
+
+const determineUrgencyLevel = (tos) => {
+  const numericTos = extractNumericAmount(tos);
+  if (numericTos === null) {
+    return 'elevated';
+  }
+  if (numericTos >= 100000) {
+    return 'critical';
+  }
+  if (numericTos >= 50000) {
+    return 'high';
+  }
+  return 'elevated';
+};
+
+const getProductContent = (productType) => {
+  const normalized = safeString(productType, 'loan').toLowerCase().replace(/_/g, ' ');
+  const mapping = {
+    loan: {
+      label: 'लोन खाता',
+      formal: 'ऋण खाते',
+      summary: 'लोन भुगतान स्थिति',
+    },
+    insurance: {
+      label: 'बीमा खाता',
+      formal: 'बीमा खाते',
+      summary: 'बीमा भुगतान स्थिति',
+    },
+    'credit card': {
+      label: 'क्रेडिट कार्ड खाता',
+      formal: 'क्रेडिट कार्ड खाते',
+      summary: 'क्रेडिट कार्ड स्थिति',
+    },
+  };
+
+  return (
+    mapping[normalized] || {
+      label: `${normalized || 'खाता'} खाता`,
+      formal: `${normalized || 'खाते'} खाते`,
+      summary: 'भुगतान स्थिति',
+    }
+  );
+};
+
+const buildDisplayAmounts = (lead) => ({
+  primary: {
+    label: 'कुल बकाया राशि',
+    value: formatAmountDisplay(lead.tos),
+    raw: safeString(lead.tos, '0'),
+    available: true,
+  },
+  secondary: {
+    label: 'मूल ऋण राशि',
+    value: formatAmountDisplay(lead.loan_amount),
+    raw: safeString(lead.loan_amount, ''),
+    available: lead.loan_amount !== null && lead.loan_amount !== undefined && String(lead.loan_amount).trim() !== '',
+  },
+});
+
+const buildScenePayload = (lead, displayAmounts, urgencyLevel) => {
+  const customerName = safeString(lead.customer_name, 'Customer');
+  const clientName = safeString(lead.client_name, 'Bank');
+  const lan = safeString(lead.lan, 'N/A');
+  const contactDetails = safeString(lead.contact_details, '1800-XXX-XXXX');
+  const productContent = getProductContent(lead.product_type);
+  const outstandingValue = displayAmounts.primary.value;
+  const loanValue = displayAmounts.secondary.value;
+  const urgencyCopy = {
+    critical: 'तत्काल हस्तक्षेप आवश्यक',
+    high: 'शीघ्र समाधान आवश्यक',
+    elevated: 'समय-संवेदी औपचारिक सूचना',
+  }[urgencyLevel];
+
+  const secondaryNote = displayAmounts.secondary.available
+    ? `मूल राशि ${loanValue}`
+    : 'उपलब्ध अभिलेखों के अनुसार भुगतान विलंब जारी है';
+
+  const headlineText = `${customerName} जी, आपके ${productContent.formal} पर तत्काल ध्यान आवश्यक है`;
+  const ctaText = `${customerName}, समाधान और पुनर्भुगतान विकल्पों पर बात करने के लिए अभी ${contactDetails} पर संपर्क करें।`;
+
+  return {
+    opening: {
+      eyebrow: 'औपचारिक सूचना',
+      headline: headlineText,
+      subheadline: `${clientName} | खाता ${lan}`,
+    },
+    account: {
+      eyebrow: productContent.summary,
+      headline: `खाता ${lan}`,
+      supporting: `वर्तमान कुल बकाया ${outstandingValue}`,
+      badge: urgencyCopy,
+    },
+    context: {
+      eyebrow: 'स्थिति सारांश',
+      headline: `${productContent.label} में निरंतर विलंब दर्ज है`,
+      body: `${clientName} के रिकॉर्ड के अनुसार भुगतान समय पर नहीं हुआ है। कुल बकाया राशि ${outstandingValue} तक पहुंच चुकी है और स्थिति पर अब औपचारिक ध्यान अपेक्षित है।`,
+    },
+    amounts: {
+      eyebrow: 'वित्तीय मुख्य बिंदु',
+      headline: 'राशि सारांश',
+      body: secondaryNote,
+      note: 'कृपया भुगतान या पुनर्भुगतान विकल्प पर तुरंत चर्चा करें।',
+    },
+    action: {
+      eyebrow: 'तत्काल अगला कदम',
+      headline: 'आज ही संपर्क करें',
+      body: ctaText,
+      cta_label: 'संपर्क नंबर',
+      cta_value: contactDetails,
+    },
+    closing: {
+      eyebrow: 'समाधान अभी भी संभव है',
+      headline: 'समय पर प्रतिक्रिया से आगे की एस्केलेशन टल सकती है',
+      body: `${clientName} आपकी त्वरित प्रतिक्रिया की प्रतीक्षा कर रहा है।`,
+    },
+    headline_text: headlineText,
+    cta_text: ctaText,
+  };
+};
+
+const normalizeLead = (lead) => {
+  const mergedLead = {...fallbackLead, ...lead};
+  const displayAmounts = lead?.display_amounts || buildDisplayAmounts(mergedLead);
+  const urgencyLevel = safeString(lead?.urgency_level, determineUrgencyLevel(mergedLead.tos));
+  const scenePayload = lead?.scene_payload || buildScenePayload(mergedLead, displayAmounts, urgencyLevel);
+
+  return {
+    ...mergedLead,
+    display_amounts: displayAmounts,
+    scene_payload: scenePayload,
+    headline_text: safeString(lead?.headline_text, scenePayload.headline_text),
+    cta_text: safeString(lead?.cta_text, scenePayload.cta_text),
+    urgency_level: urgencyLevel,
+  };
+};
+
+export const leads =
+  Array.isArray(leadsData) && leadsData.length > 0
+    ? leadsData.map((lead) => normalizeLead(lead))
+    : [normalizeLead(fallbackLead)];
+
+export const getLeadById = (leadId) =>
+  leads.find((lead) => lead.id === leadId) || leads[0] || normalizeLead(fallbackLead);
+
+export const getTrackMeta = (leadId) => {
+  const track = metadata[leadId];
+  if (!track || typeof track !== 'object') {
+    return {duration: DEFAULT_DURATION_SECONDS, subtitles: []};
+  }
+
+  return {
+    duration:
+      typeof track.duration === 'number' && Number.isFinite(track.duration)
+        ? track.duration
+        : DEFAULT_DURATION_SECONDS,
+    subtitles: Array.isArray(track.subtitles) ? track.subtitles : [],
+  };
+};
+
+export const getDurationInFrames = (leadId) => {
+  const track = getTrackMeta(leadId);
+  const lastSubtitleEnd = track.subtitles.reduce((max, item) => {
+    if (item && typeof item.end === 'number' && Number.isFinite(item.end)) {
+      return Math.max(max, item.end);
+    }
+    return max;
+  }, 0);
+  const totalSeconds = Math.max(track.duration, lastSubtitleEnd, DEFAULT_DURATION_SECONDS);
+  return Math.ceil(totalSeconds * FPS) + Math.round(FPS * 1.5);
+};
+
+export const getActiveSubtitle = (subtitles, currentTime) =>
+  subtitles.find((subtitle) => {
+    if (!subtitle || typeof subtitle !== 'object') {
+      return false;
+    }
+    return currentTime >= subtitle.start && currentTime <= subtitle.end;
+  }) || null;
+
+export const getSubtitleProgress = (subtitle, currentTime) => {
+  if (!subtitle) {
+    return 0;
+  }
+  const duration = Math.max(0.01, subtitle.end - subtitle.start);
+  return Math.min(1, Math.max(0, (currentTime - subtitle.start) / duration));
+};
+
+export const getSceneTimeline = (durationInFrames) => {
+  const totalFrames = Math.max(durationInFrames, SCENE_DEFINITIONS.length * 40);
+  const minFrames = 36;
+  const durations = SCENE_DEFINITIONS.map((scene) =>
+    Math.max(minFrames, Math.round(totalFrames * scene.ratio))
+  );
+
+  let allocated = durations.reduce((sum, value) => sum + value, 0);
+
+  while (allocated > totalFrames) {
+    const index = durations.findIndex((value) => value > minFrames);
+    if (index === -1) {
+      break;
+    }
+    durations[index] -= 1;
+    allocated -= 1;
+  }
+
+  while (allocated < totalFrames) {
+    const index = allocated % SCENE_DEFINITIONS.length;
+    durations[index] += 1;
+    allocated += 1;
+  }
+
+  let cursor = 0;
+  return SCENE_DEFINITIONS.map((scene, index) => {
+    const duration = durations[index];
+    const start = cursor;
+    cursor += duration;
+    return {
+      ...scene,
+      start,
+      duration,
+      end: start + duration,
+    };
+  });
+};

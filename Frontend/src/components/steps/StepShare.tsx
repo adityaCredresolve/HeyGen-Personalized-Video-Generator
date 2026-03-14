@@ -1,6 +1,7 @@
 import { Download, Link, MessageCircle, BookmarkPlus, AlertCircle, CheckCircle2, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardState } from "@/store/wizardStore";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const FORMATS = [
@@ -24,9 +25,12 @@ interface StepShareProps {
 export function StepShare({ state, update }: StepShareProps) {
   const generatedVideo = state.generatedVideo;
   const videoUrl = state.styledVideoUrl || generatedVideo?.video_url || "";
-  const avatarName = state.avatarId
-    ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
-    : "None";
+  const avatarName =
+    state.videoType === "remotion"
+      ? "ScriptMotion"
+      : state.avatarId
+        ? state.avatarId.charAt(0).toUpperCase() + state.avatarId.slice(1)
+        : "None";
   const statusText =
     state.generationStatus === "completed"
       ? generatedVideo?.status ?? "completed"
@@ -58,7 +62,7 @@ export function StepShare({ state, update }: StepShareProps) {
       return;
     }
 
-    window.open(videoUrl, "_blank", "noopener,noreferrer");
+    window.location.assign(videoUrl);
   };
 
   const handleShareOnWhatsApp = () => {
@@ -77,16 +81,28 @@ export function StepShare({ state, update }: StepShareProps) {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-success/10 border border-success/30">
           <CheckCircle2 className="h-6 w-6 text-success shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-foreground">Your video is ready.</p>
-            <p className="text-xs text-muted-foreground">Use the delivery controls below to share or download it.</p>
+            <p className="text-sm font-semibold text-foreground">
+              {state.videoType === "remotion" ? "Your ScriptMotion video is ready." : "Your video is ready."}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {state.videoType === "remotion"
+                ? "Use the link below to open, copy, or download the finished ScriptMotion render."
+                : "Use the delivery controls below to share or download it."}
+            </p>
           </div>
         </div>
       ) : state.generationStatus === "submitting" ? (
         <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/30">
           <LoaderCircle className="h-6 w-6 text-primary shrink-0 animate-spin" />
           <div>
-            <p className="text-sm font-semibold text-foreground">Generating video</p>
-            <p className="text-xs text-muted-foreground">The job is submitted. The frontend is polling status in the background.</p>
+            <p className="text-sm font-semibold text-foreground">
+              {state.videoType === "remotion" ? "Rendering ScriptMotion video" : "Generating video"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {state.videoType === "remotion"
+                ? "We are stitching together a personalized ScriptMotion render for this lead."
+                : "Your video is being prepared. We will move you ahead as soon as it is ready."}
+            </p>
           </div>
         </div>
       ) : state.generationStatus === "styling" ? (
@@ -94,7 +110,7 @@ export function StepShare({ state, update }: StepShareProps) {
           <LoaderCircle className="h-6 w-6 text-primary shrink-0 animate-spin" />
           <div>
             <p className="text-sm font-semibold text-foreground">Applying subtitles and logo</p>
-            <p className="text-xs text-muted-foreground">The base video is ready. Branding is being rendered into the final MP4 now.</p>
+            <p className="text-xs text-muted-foreground">We are adding the final presentation touches to your video now.</p>
           </div>
         </div>
       ) : state.generationStatus === "failed" ? (
@@ -105,15 +121,7 @@ export function StepShare({ state, update }: StepShareProps) {
             <p className="text-xs text-muted-foreground">{state.generationError || "Check backend logs and try again."}</p>
           </div>
         </div>
-      ) : (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/80 border border-border">
-          <BookmarkPlus className="h-6 w-6 text-muted-foreground shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-foreground">Ready to generate</p>
-            <p className="text-xs text-muted-foreground">Use the footer button to submit this wizard to `/generate/direct`.</p>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-2 gap-8">
         {/* Left */}
@@ -174,12 +182,16 @@ export function StepShare({ state, update }: StepShareProps) {
           <h3 className="text-sm font-semibold text-foreground mb-4">Video Metadata</h3>
           <Meta label="Video Name" value={generatedVideo?.title ?? `${state.titlePrefix} - Draft`} />
           <Meta label="Created At" value={new Date().toLocaleDateString()} />
+          <Meta label="Style" value={state.videoType === "remotion" ? "ScriptMotion" : "Avatar"} />
           <Meta label="Language" value={state.language} />
-          <Meta label="Avatar" value={avatarName} />
+          {state.videoType === "avatar" ? <Meta label="Avatar" value={avatarName} /> : null}
           <Meta label="Status" value={statusText} />
           <Meta label="Video ID" value={generatedVideo?.video_id ?? "Pending"} />
           <Meta label="Logo" value={state.logoFileName || "None"} />
-          <Meta label="Output URL" value={videoUrl || "Pending"} />
+          <HighlightedOutputLink
+            href={videoUrl}
+            onCopy={() => void handleCopyShareLink()}
+          />
         </div>
       </div>
     </div>
@@ -191,6 +203,73 @@ function Meta({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between text-sm border-b border-border pb-3 last:border-0 last:pb-0">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground font-medium">{value}</span>
+    </div>
+  );
+}
+
+function HighlightedOutputLink({
+  href,
+  onCopy,
+}: {
+  href: string;
+  onCopy: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border p-4 transition-all duration-300",
+        href
+          ? "border-primary/35 bg-gradient-to-br from-primary/12 via-background to-primary/8 shadow-[0_0_0_1px_rgba(168,85,247,0.08),0_18px_40px_rgba(168,85,247,0.08)]"
+          : "border-border bg-secondary/30",
+      )}
+    >
+      {href ? (
+        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_40%),linear-gradient(90deg,transparent,rgba(168,85,247,0.12),transparent)] motion-safe:animate-pulse" />
+      ) : null}
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">Final Output Link</p>
+          <p className="text-sm font-medium text-foreground">
+            {href ? "Open or copy this link to access the finished video." : "Your video link will appear here once generation completes."}
+          </p>
+        </div>
+        {href ? (
+          <span className="inline-flex h-3 w-3 shrink-0 rounded-full bg-primary shadow-[0_0_18px_rgba(168,85,247,0.65)]" />
+        ) : null}
+      </div>
+      {href ? (
+        <div className="relative mt-4 space-y-3">
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-3 rounded-xl border border-primary/30 bg-background/80 px-4 py-3 text-left transition-all duration-300 hover:border-primary/50 hover:bg-background hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
+            title={href}
+          >
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Link className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-primary">Open video</span>
+              <span className="block truncate text-xs text-muted-foreground">{href}</span>
+            </span>
+          </a>
+          <div className="flex gap-2">
+            <Button type="button" asChild className="flex-1">
+              <a href={href} target="_blank" rel="noopener noreferrer">
+                Open
+              </a>
+            </Button>
+            <Button type="button" variant="outline" onClick={onCopy} className="flex-1 border-primary/30 text-primary hover:bg-primary/5">
+              Copy Link
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative mt-4 rounded-xl border border-dashed border-border bg-background/50 px-4 py-3 text-sm font-medium text-muted-foreground">
+          Pending
+        </div>
+      )}
     </div>
   );
 }

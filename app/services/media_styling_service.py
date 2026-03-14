@@ -48,6 +48,20 @@ class StyledArtifact:
     subtitle_source: Literal['provider', 'transcript', 'disabled']
 
 
+@dataclass(frozen=True)
+class VideoGeometry:
+    width: int
+    height: int
+    duration_seconds: float
+
+
+@dataclass(frozen=True)
+class SubtitleOverlay:
+    image_path: Path
+    start_seconds: float
+    end_seconds: float
+
+
 class MediaStylingService:
     _subtitle_colors = {
         'white': '&H00FFFFFF',
@@ -67,6 +81,12 @@ class MediaStylingService:
     }
     _allowed_logo_suffixes = {'.png', '.jpg', '.jpeg'}
     _max_logo_bytes = 2 * 1024 * 1024
+    _subtitle_font_candidates = (
+        '/System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc',
+        '/System/Library/Fonts/Supplemental/ITFDevanagari.ttc',
+        '/System/Library/Fonts/Supplemental/DevanagariMT.ttc',
+        '/System/Library/Fonts/Supplemental/Arial Unicode.ttf',
+    )
 
     def __init__(self, client: HeyGenClient | None = None) -> None:
         self.client = client or HeyGenClient()
@@ -114,6 +134,8 @@ class MediaStylingService:
         logo_file_path = self._persist_logo(style_dir, normalized.logo_filename, normalized.logo_bytes)
         subtitle_file_path: Path | None = None
         subtitle_source: Literal['provider', 'transcript', 'disabled'] = 'disabled'
+        subtitle_overlays: list[SubtitleOverlay] = []
+        video_geometry = self._probe_video_geometry(source_video_path)
 
         if normalized.include_captions:
             cues: list[SubtitleCue] = []
@@ -128,18 +150,18 @@ class MediaStylingService:
             if not cues:
                 if not normalized.transcript:
                     raise RuntimeError('Captions were requested, but no caption file or transcript is available.')
-                duration_seconds = self._probe_duration_seconds(source_video_path)
-                cues = self._build_transcript_cues(normalized.transcript, duration_seconds)
+                cues = self._build_transcript_cues(normalized.transcript, video_geometry.duration_seconds)
                 subtitle_source = 'transcript'
 
-            subtitle_file_path = style_dir / 'captions.ass'
-            subtitle_file_path.write_text(
-                self._build_ass_document(
-                    cues,
-                    color=normalized.subtitle_color,
-                    position=normalized.subtitle_position,
-                ),
-                encoding='utf-8',
+            subtitle_file_path = style_dir / 'captions'
+            subtitle_file_path.mkdir(parents=True, exist_ok=True)
+            subtitle_overlays = self._render_subtitle_overlays(
+                output_dir=subtitle_file_path,
+                cues=cues,
+                color=normalized.subtitle_color,
+                position=normalized.subtitle_position,
+                width=video_geometry.width,
+                height=video_geometry.height,
             )
             logger.info('video_styling_subtitles_ready', extra={'video_id': video_id, 'subtitle_file_path': str(subtitle_file_path), 'subtitle_source': subtitle_source})
 
@@ -160,7 +182,7 @@ class MediaStylingService:
         self._run_ffmpeg(
             source_video_path=source_video_path,
             final_video_path=final_video_path,
-            subtitle_file_path=subtitle_file_path,
+            subtitle_overlays=subtitle_overlays,
             logo_file_path=logo_file_path,
             logo_position=normalized.logo_position,
             logo_opacity=normalized.logo_opacity,
@@ -306,7 +328,7 @@ class MediaStylingService:
         seconds = float(parts[2])
         return (hours * 3600) + (minutes * 60) + seconds
 
-    def _probe_duration_seconds(self, video_path: Path) -> float:
+    def _probe_video_geometry(self, video_path: Path) -> VideoGeometry:
         try:
             probe = subprocess.run(
                 [settings.ffmpeg_binary, '-i', str(video_path)],
@@ -321,7 +343,15 @@ class MediaStylingService:
         if not match:
             raise RuntimeError(f'Unable to determine video duration for {video_path}.')
         hours, minutes, seconds = match.groups()
-        return (int(hours) * 3600) + (int(minutes) * 60) + float(seconds)
+        size_match = re.search(r'Video:.*?(\d{2,5})x(\d{2,5})', probe.stderr)
+        if not size_match:
+            raise RuntimeError(f'Unable to determine video dimensions for {video_path}.')
+        width, height = size_match.groups()
+        return VideoGeometry(
+            width=int(width),
+            height=int(height),
+            duration_seconds=(int(hours) * 3600) + (int(minutes) * 60) + float(seconds),
+        )
 
     def _build_transcript_cues(self, transcript: str, duration_seconds: float) -> list[SubtitleCue]:
         sentences = [chunk.strip() for chunk in re.split(r'(?<=[.!?।])\s+', transcript) if chunk.strip()]
@@ -351,47 +381,130 @@ class MediaStylingService:
             cursor = end
         return cues
 
-    def _build_ass_document(self, cues: list[SubtitleCue], *, color: str, position: str) -> str:
-        primary_color = self._subtitle_colors[color]
-        alignment = self._subtitle_alignments[position]
-        margin_vertical = '36' if position == 'top' else '120' if position == 'center' else '42'
+    def _render_subtitle_overlays(
+        self,
+        *,
+        output_dir: Path,
+        cues: list[SubtitleCue],
+        color: str,
+        position: str,
+        width: int,
+        height: int,
+    ) -> list[SubtitleOverlay]:
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+        except ModuleNotFoundError as exc:
+            raise RuntimeError('Subtitle styling requires Pillow. Run `pip install -r requirements.txt` and retry.') from exc
 
-        lines = [
-            '[Script Info]',
-            'ScriptType: v4.00+',
-            'PlayResX: 1280',
-            'PlayResY: 720',
-            'ScaledBorderAndShadow: yes',
-            '',
-            '[V4+ Styles]',
-            'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-            f'Style: Default,Arial,40,{primary_color},&H000000FF,&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,2,0,{alignment},60,60,{margin_vertical},1',
-            '',
-            '[Events]',
-            'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
-        ]
-        for cue in cues:
-            lines.append(
-                f'Dialogue: 0,{self._format_ass_timestamp(cue.start_seconds)},{self._format_ass_timestamp(cue.end_seconds)},Default,,0,0,0,,{self._escape_ass_text(cue.text)}'
+        output_dir.mkdir(parents=True, exist_ok=True)
+        font_path = self._resolve_subtitle_font_path()
+        font_size = max(30, min(56, int(width * 0.034)))
+        font = ImageFont.truetype(font_path, font_size)
+        stroke_width = max(1, font_size // 14)
+        overlays: list[SubtitleOverlay] = []
+
+        for index, cue in enumerate(cues):
+            lines = self._wrap_subtitle_text(cue.text, font=font, max_width=int(width * 0.78))
+            line_gap = max(8, font_size // 4)
+            temp_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(temp_image)
+            line_heights: list[int] = []
+            line_widths: list[int] = []
+            for line in lines:
+                bbox = draw.textbbox((0, 0), line, font=font, stroke_width=stroke_width)
+                line_widths.append(bbox[2] - bbox[0])
+                line_heights.append(bbox[3] - bbox[1])
+
+            text_block_width = max(line_widths, default=0)
+            text_block_height = sum(line_heights) + line_gap * max(0, len(lines) - 1)
+            padding_x = max(28, font_size)
+            padding_y = max(18, font_size // 2)
+            box_width = min(width - 64, text_block_width + padding_x * 2)
+            box_height = text_block_height + padding_y * 2
+            x = (width - box_width) // 2
+            if position == 'top':
+                y = 32
+            elif position == 'center':
+                y = (height - box_height) // 2
+            else:
+                y = height - box_height - 32
+
+            draw.rounded_rectangle(
+                (x, y, x + box_width, y + box_height),
+                radius=max(18, font_size // 2),
+                fill=(12, 10, 24, 170),
             )
-        return '\n'.join(lines) + '\n'
 
-    def _format_ass_timestamp(self, seconds: float) -> str:
-        total_centiseconds = max(0, round(seconds * 100))
-        hours, remainder = divmod(total_centiseconds, 360000)
-        minutes, remainder = divmod(remainder, 6000)
-        whole_seconds, centiseconds = divmod(remainder, 100)
-        return f'{hours}:{minutes:02d}:{whole_seconds:02d}.{centiseconds:02d}'
+            current_y = y + padding_y
+            rgb = self._subtitle_color_rgb(color)
+            for line_index, line in enumerate(lines):
+                line_width = line_widths[line_index]
+                line_x = (width - line_width) // 2
+                draw.text(
+                    (line_x, current_y),
+                    line,
+                    font=font,
+                    fill=rgb + (255,),
+                    stroke_width=stroke_width,
+                    stroke_fill=(0, 0, 0, 220),
+                )
+                current_y += line_heights[line_index] + line_gap
 
-    def _escape_ass_text(self, text: str) -> str:
-        return text.replace('\\', r'\\').replace('{', r'\{').replace('}', r'\}').replace('\n', r'\N')
+            image_path = output_dir / f'cue_{index:03d}.png'
+            temp_image.save(image_path)
+            overlays.append(
+                SubtitleOverlay(
+                    image_path=image_path,
+                    start_seconds=cue.start_seconds,
+                    end_seconds=cue.end_seconds,
+                )
+            )
+        return overlays
+
+    def _resolve_subtitle_font_path(self) -> str:
+        candidates = []
+        if settings.subtitle_font_path:
+            candidates.append(settings.subtitle_font_path)
+        candidates.extend(self._subtitle_font_candidates)
+        for candidate in candidates:
+            if candidate and Path(candidate).exists():
+                return candidate
+        raise RuntimeError('No Devanagari-capable subtitle font was found. Set SUBTITLE_FONT_PATH in `.env` to a valid TTF/TTC file.')
+
+    def _wrap_subtitle_text(self, text: str, *, font, max_width: int) -> list[str]:
+        from PIL import Image, ImageDraw
+
+        words = text.split()
+        if not words:
+            return ['']
+
+        draw = ImageDraw.Draw(Image.new('RGBA', (10, 10), (0, 0, 0, 0)))
+        lines: list[str] = []
+        current = words[0]
+        for word in words[1:]:
+            candidate = f'{current} {word}'
+            bbox = draw.textbbox((0, 0), candidate, font=font)
+            if bbox[2] - bbox[0] <= max_width:
+                current = candidate
+            else:
+                lines.append(current)
+                current = word
+        lines.append(current)
+        return lines
+
+    def _subtitle_color_rgb(self, color: str) -> tuple[int, int, int]:
+        if color == 'yellow':
+            return (255, 238, 112)
+        if color == 'teal':
+            return (104, 228, 214)
+        return (255, 255, 255)
 
     def _run_ffmpeg(
         self,
         *,
         source_video_path: Path,
         final_video_path: Path,
-        subtitle_file_path: Path | None,
+        subtitle_overlays: list[SubtitleOverlay],
         logo_file_path: Path | None,
         logo_position: str,
         logo_opacity: int,
@@ -399,7 +512,7 @@ class MediaStylingService:
         command = self.build_ffmpeg_command(
             source_video_path=source_video_path,
             final_video_path=final_video_path,
-            subtitle_file_path=subtitle_file_path,
+            subtitle_overlays=subtitle_overlays,
             logo_file_path=logo_file_path,
             logo_position=logo_position,
             logo_opacity=logo_opacity,
@@ -416,27 +529,33 @@ class MediaStylingService:
         *,
         source_video_path: Path,
         final_video_path: Path,
-        subtitle_file_path: Path | None,
+        subtitle_overlays: list[SubtitleOverlay],
         logo_file_path: Path | None,
         logo_position: str,
         logo_opacity: int,
     ) -> list[str]:
         command = [settings.ffmpeg_binary, '-y', '-i', str(source_video_path)]
         filter_parts: list[str] = []
-        output_label = ''
+        output_label = 'base'
+        last_label = 'base'
+        filter_parts.append('[0:v]format=rgba[base]')
 
-        if subtitle_file_path:
-            filter_parts.append(f"[0:v]ass=filename={self._escape_filter_path(subtitle_file_path)}[subbed]")
-            output_label = 'subbed'
+        for index, overlay in enumerate(subtitle_overlays, start=1):
+            command.extend(['-loop', '1', '-i', str(overlay.image_path)])
+            next_label = f'sub{index}'
+            filter_parts.append(
+                f'[{last_label}][{index}:v]overlay=0:0:enable=\'between(t,{overlay.start_seconds:.2f},{overlay.end_seconds:.2f})\'[{next_label}]'
+            )
+            last_label = next_label
+            output_label = next_label
 
         if logo_file_path:
             command.extend(['-i', str(logo_file_path)])
             filter_parts.append(
-                f"[1:v]scale=w='min(iw,220)':h=-1,format=rgba,colorchannelmixer=aa={logo_opacity / 100:.2f}[logo]"
+                f'[{len(subtitle_overlays) + 1}:v]scale=w=\'min(iw,220)\':h=-1,format=rgba,colorchannelmixer=aa={logo_opacity / 100:.2f}[logo]'
             )
             x_pos, y_pos = self._logo_positions[logo_position]
-            base_input = f'[{output_label}]' if output_label else '[0:v]'
-            filter_parts.append(f'{base_input}[logo]overlay={x_pos}:{y_pos}:format=auto[styled]')
+            filter_parts.append(f'[{last_label}][logo]overlay={x_pos}:{y_pos}:format=auto[styled]')
             output_label = 'styled'
 
         if filter_parts:
@@ -460,11 +579,8 @@ class MediaStylingService:
                 'aac',
                 '-movflags',
                 '+faststart',
+                '-shortest',
                 str(final_video_path),
             ]
         )
         return command
-
-    def _escape_filter_path(self, path: Path) -> str:
-        escaped = path.as_posix().replace('\\', '\\\\').replace(':', '\\:').replace("'", r"\'")
-        return f"'{escaped}'"

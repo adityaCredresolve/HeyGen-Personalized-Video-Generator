@@ -99,8 +99,8 @@ export default function TemplateLibrary() {
                         <Copy className="mr-2 h-4 w-4" />
                         Copy ID
                       </Button>
-                      <Button size="sm" onClick={() => navigate("/create")}>
-                        Open Creator
+                      <Button size="sm" onClick={() => navigate("/create?mode=remotion&fresh=1")}>
+                        Open ScriptMotion
                       </Button>
                     </div>
                   </div>

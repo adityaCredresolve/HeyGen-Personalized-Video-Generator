@@ -34,22 +34,10 @@ interface ProcessingScreenProps {
   status: "submitting" | "styling" | "idle" | "completed" | "failed";
   estimatedTime?: string;
   isLongVideo?: boolean;
+  videoType?: "avatar" | "remotion";
 }
 
-export function ProcessingScreen({ status, estimatedTime, isLongVideo }: ProcessingScreenProps) {
-  const getStatusMessage = () => {
-    if (status === "submitting") return "Generating AI Video...";
-    if (status === "styling") return "Applying captions & branding...";
-    return "Processing...";
-  };
-
-  const getSubMessage = () => {
-    if (isLongVideo && status === "submitting") {
-      return "Your script is quite long, so this might take a bit more time. Feel free to grab a coffee!";
-    }
-    return `Estimated time: ~${estimatedTime || "3"} mins. We will notify you when it's ready.`;
-  };
-
+export function ProcessingScreen({ status, estimatedTime, isLongVideo, videoType = "avatar" }: ProcessingScreenProps) {
   return (
     <div className="flex flex-col items-center justify-center w-full h-[400px] bg-background/50 rounded-xl border border-border overflow-hidden relative">
       <div className="absolute inset-0 z-0">
@@ -61,18 +49,17 @@ export function ProcessingScreen({ status, estimatedTime, isLongVideo }: Process
           <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
         </Canvas>
       </div>
-      
-      <div className="z-10 bg-background/80 backdrop-blur-md px-8 py-6 rounded-2xl border border-border/50 shadow-xl text-center max-w-sm mt-32">
-        <h3 className="font-display text-xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+
+      <div className="z-10 mt-32 flex flex-col items-center gap-4">
+        <div className="rounded-full border border-primary/25 bg-background/75 px-4 py-2 backdrop-blur-md shadow-xl">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
           </span>
-          {getStatusMessage()}
-        </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {getSubMessage()}
-        </p>
+        </div>
+        <div className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md">
+          {status === "styling" ? "Finalizing" : videoType === "remotion" ? "ScriptMotion" : "Processing"}
+        </div>
       </div>
     </div>
   );

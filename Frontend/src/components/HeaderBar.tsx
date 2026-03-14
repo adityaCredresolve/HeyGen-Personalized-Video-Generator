@@ -1,10 +1,20 @@
-import { Plus, LayoutTemplate, Video } from "lucide-react";
+import { ChevronDown, Clapperboard, LayoutTemplate, Sparkles, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type CreateMode = "avatar" | "remotion";
 
 interface HeaderBarProps {
-  onCreateVideo?: () => void;
+  onCreateVideo?: (mode?: CreateMode) => void;
   primaryLabel?: string;
 }
 
@@ -15,9 +25,9 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
   const isCreatePage = location.pathname === "/create";
   const isTemplatesPage = location.pathname === "/templates";
 
-  const handlePrimaryAction = () => {
-    navigate("/create");
-    onCreateVideo?.();
+  const launchCreate = (mode: CreateMode) => {
+    navigate(`/create?mode=${mode}&fresh=1`);
+    onCreateVideo?.(mode);
   };
 
   return (
@@ -50,16 +60,38 @@ export function HeaderBar({ onCreateVideo, primaryLabel = "Create Video" }: Head
           <Video className="md:mr-2 h-4 w-4" />
           <span className="hidden md:inline">My Videos</span>
         </Button>
-        <Button
-          size="sm"
-          onClick={handlePrimaryAction}
-          className={`bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold ${
-            isCreatePage ? "ring-1 ring-primary/40" : ""
-          }`}
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          {primaryLabel}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              className={`bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold ${
+                isCreatePage ? "ring-1 ring-primary/40" : ""
+              }`}
+            >
+              <Sparkles className="mr-1.5 h-4 w-4" />
+              {primaryLabel}
+              <ChevronDown className="ml-1.5 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Choose Creation Flow</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => launchCreate("avatar")} className="items-start gap-3 py-3">
+              <Clapperboard className="mt-0.5 h-4 w-4 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">Avatar Flow</p>
+                <p className="text-xs text-muted-foreground">Use the existing talking-avatar pipeline.</p>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => launchCreate("remotion")} className="items-start gap-3 py-3">
+              <LayoutTemplate className="mt-0.5 h-4 w-4 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">ScriptMotion Flow</p>
+                <p className="text-xs text-muted-foreground">Create the cinematic script-driven render with the ScriptMotion setup.</p>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

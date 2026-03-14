@@ -98,14 +98,21 @@ export function StepLayout({
               )}
             </>
           ) : (
-            <Button
-              onClick={onNext}
-              disabled={!canProceed || primaryActionBusy}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold disabled:opacity-40 flex-1"
-            >
-              {primaryActionBusy ? primaryBusyLabel : nextLabel || "Next"}
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
+            <>
+              <Button
+                onClick={onNext}
+                disabled={!canProceed || primaryActionBusy}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 glow-purple-sm font-semibold disabled:opacity-40 flex-1"
+              >
+                {primaryActionBusy ? primaryBusyLabel : nextLabel || "Next"}
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+              {primaryActionBusy && onCancel && (
+                <Button variant="destructive" onClick={onCancel} className="flex-1 max-w-[140px]">
+                  Stop
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
